@@ -6,19 +6,54 @@ This document describes the directory structure and patterns to follow in ad-man
 
 ```
 ad-manager/
-├── app/                # App Router root — routes, layouts, pages, server actions
-│   ├── layout.tsx      # Root layout (required)
-│   ├── page.tsx        # Home route (/)
-│   ├── globals.css     # Global styles (Tailwind)
-│   └── ...             # Nested route segments (folders become URL segments)
-├── public/             # Static assets served at /
-├── docs/               # Project documentation (this folder)
-├── next.config.ts      # Next.js configuration
-├── tsconfig.json       # TypeScript configuration
-├── eslint.config.mjs   # ESLint flat config
-├── postcss.config.mjs  # PostCSS / Tailwind
+├── app/                       # App Router — routes, layouts, pages, Server Actions
+│   ├── layout.tsx             # Root layout (required)
+│   ├── page.tsx               # Home route (/)
+│   ├── globals.css            # Tailwind v4 @theme tokens (mirrors DESIGN.md)
+│   ├── login/                 # /login route + co-located Server Actions
+│   │   ├── actions.ts         # signIn / signOut
+│   │   └── page.tsx
+│   └── ...                    # Nested route segments (folders become URL segments)
+├── components/                # UI building blocks — atoms → molecules → organisms
+│   ├── atoms/                 # Smallest reusable primitives (Button, Input, Label, ErrorMessage)
+│   ├── molecules/             # Compositions of atoms (FormField)
+│   └── organisms/             # Feature blocks (LoginForm, SignOutButton)
+├── utils/supabase/            # Supabase client helpers
+│   ├── client.ts              # createBrowserClient — client components
+│   ├── server.ts              # createClient (async) — Server Components / Server Actions
+│   └── middleware.ts          # updateSession — refresh + route protection
+├── proxy.ts                   # Edge proxy — Next.js 16 convention (calls updateSession)
+├── supabase/
+│   ├── migrations/            # SQL migrations (NNNN_description.sql, ascending)
+│   └── seed.sql               # Optional seed data
+├── public/                    # Static assets served at /
+├── docs/                      # Project documentation (this folder)
+├── DESIGN.md                  # Design tokens (managed by `getdesign` CLI)
+├── next.config.ts             # Next.js configuration
+├── tsconfig.json              # TypeScript configuration
+├── eslint.config.mjs          # ESLint flat config
+├── postcss.config.mjs         # PostCSS / Tailwind
 └── package.json
 ```
+
+## Component hierarchy
+
+The `components/` tree follows the same atoms / molecules / organisms split used in **acm-web**:
+
+| Layer | Purpose | Examples in this repo |
+|---|---|---|
+| **atoms** | Smallest reusable UI primitives. No business logic. No composition of other components. | [`Button`](../../../components/atoms/Button.tsx), [`Input`](../../../components/atoms/Input.tsx), [`Label`](../../../components/atoms/Label.tsx), [`ErrorMessage`](../../../components/atoms/ErrorMessage.tsx) |
+| **molecules** | Small compositions of atoms. Re-usable in multiple organisms. | [`FormField`](../../../components/molecules/FormField.tsx) (Label + Input + ErrorMessage) |
+| **organisms** | Feature-specific blocks. May wire to Server Actions, fetch data, or hold local state. | [`LoginForm`](../../../components/organisms/LoginForm.tsx), [`SignOutButton`](../../../components/organisms/SignOutButton.tsx) |
+| **pages** | Route-level views under `app/<segment>/page.tsx`. Compose organisms; keep this thin. | [`app/login/page.tsx`](../../../app/login/page.tsx), [`app/page.tsx`](../../../app/page.tsx) |
+
+Rules:
+
+- **Direction is one-way.** Atoms never import molecules / organisms / pages. Molecules never import organisms / pages. Organisms never import pages.
+- **Reuse before adding.** Check existing atoms / molecules first. Add a new one only if no existing component fits.
+- **PascalCase filenames** matching the component name (`Button.tsx` exports `Button`). One component per file.
+- **No `index.ts` re-export barrels** — import directly via `@/components/<layer>/<Component>` to keep the dependency graph explicit.
+- **Client vs server.** A Client Component (`"use client"`) cannot be imported by a Server Component in a way that breaks the boundary. Push `"use client"` down to the smallest leaf that actually needs it. Server Actions live in `*.ts` files next to the route or component that uses them.
 
 ## App Router file conventions
 

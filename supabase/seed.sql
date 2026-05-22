@@ -1,0 +1,11 @@
+-- supabase/seed.sql
+-- Optional seed data. Replace <USER_UUID> with the id of an existing auth user
+-- (Supabase Dashboard → Authentication → Users → copy the user's UID).
+--
+-- Then run this file via:
+--   • Supabase Dashboard → SQL Editor → paste and Run, OR
+--   • supabase db reset (will re-apply all migrations + seed) when using the CLI.
+
+-- insert into public.todos (user_id, name) values
+--   ('<USER_UUID>', 'Try ad-manager'),
+--   ('<USER_UUID>', 'Read DESIGN.md');

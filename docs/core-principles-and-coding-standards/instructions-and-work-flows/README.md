@@ -4,12 +4,13 @@ Step-by-step instructions for repeatable tasks live here.
 
 ## Workflows
 
-_None yet — add per-task workflows as patterns stabilize._
+| Task | Document |
+|------|----------|
+| Add a new page / route (with optional new components and migration) | [adding-a-new-page.md](adding-a-new-page.md) |
 
 Suggested files to add when the codebase grows:
 
-- `adding-a-new-page.md` — App Router page creation (folder under `app/` + `page.tsx` + optional `loading.tsx` / `error.tsx`).
-- `adding-a-new-feature.md` — multi-file feature (page + Server Actions + components + types).
+- `adding-a-new-feature.md` — multi-file feature spanning multiple routes / domains.
 - `adding-an-api-route.md` — Route Handler (`route.ts`) conventions.
 
 ## Common small actions
