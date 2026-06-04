@@ -7,39 +7,49 @@
  * `text-foo`, etc. in JSX.
  */
 @theme {
-  /* ----- Colors ----- */
+  /* ----- Colors (Binance design system — see DESIGN.md) ----- */
 
-  /* Brand & accent */
-  --color-primary: #0066cc;
-  --color-primary-focus: #0071e3;
-  --color-primary-on-dark: #2997ff;
+  /* Brand & accent — single yellow carries all brand voltage */
+  --color-primary: #fcd535;
+  --color-primary-active: #f0b90b;
+  --color-primary-disabled: #3a3a1f;
+  --color-primary-focus: #3b82f6;
+  --color-primary-on-dark: #fcd535;
+  --color-accent-turquoise: #2dbdb6;
 
-  /* Text on light */
-  --color-ink: #1d1d1f;
-  --color-body: #1d1d1f;
-  --color-ink-muted-80: #333333;
-  --color-ink-muted-48: #7a7a7a;
+  /* Surfaces — dark (default for this tools app) */
+  --color-canvas-dark: #0b0e11;
+  --color-surface-card-dark: #1e2329;
+  --color-surface-elevated-dark: #2b3139;
 
-  /* Text on dark */
-  --color-body-on-dark: #ffffff;
-  --color-body-muted: #cccccc;
+  /* Surfaces — light (transactional / auth) */
+  --color-canvas: #ffffff;
+  --color-canvas-parchment: #fafafa;
+  --color-surface-pearl: #f5f5f5;
 
   /* Hairlines / borders */
-  --color-divider-soft: #f0f0f0;
-  --color-hairline: #e0e0e0;
+  --color-hairline-on-dark: #2b3139;
+  --color-hairline-on-light: #eaecef;
+  --color-hairline: #eaecef;
+  --color-divider-soft: #2b3139;
+  --color-border-strong: #cdd1d6;
 
-  /* Surfaces */
-  --color-canvas: #ffffff;
-  --color-canvas-parchment: #f5f5f7;
-  --color-surface-pearl: #fafafc;
-  --color-surface-tile-1: #272729;
-  --color-surface-tile-2: #2a2a2c;
-  --color-surface-tile-3: #252527;
-  --color-surface-black: #000000;
-  --color-surface-chip-translucent: #d2d2d7;
+  /* Text */
+  --color-ink: #181a20;
+  --color-body: #181a20;
+  --color-body-on-dark: #eaecef;
+  --color-muted: #707a8a;
+  --color-muted-strong: #929aa5;
+  --color-ink-muted-80: #929aa5;
+  --color-ink-muted-48: #707a8a;
+
+  /* Trading semantics — green up / red down */
+  --color-trading-up: #0ecb81;
+  --color-trading-down: #f6465d;
+  --color-info: #3b82f6;
 
   /* Foreground-on-X */
-  --color-on-primary: #ffffff;
+  --color-on-primary: #181a20;
   --color-on-dark: #ffffff;
 
   /* ----- Font families ----- */

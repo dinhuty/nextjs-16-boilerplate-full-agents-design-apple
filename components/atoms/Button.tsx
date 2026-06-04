@@ -16,7 +16,8 @@ type Variant =
   | "primary-rect"
   | "secondary"
   | "dark-utility"
-  | "pearl";
+  | "pearl"
+  | "soft";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: Variant;
@@ -34,6 +35,8 @@ const VARIANTS: Record<Variant, string> = {
     "bg-ink text-on-dark text-button-utility rounded-md px-[15px] py-[8px]",
   pearl:
     "bg-surface-pearl text-ink-muted-80 text-caption rounded-md px-[14px] py-[8px] border border-divider-soft",
+  soft:
+    "bg-surface-elevated-dark text-on-dark text-button-utility rounded-md px-[15px] py-[8px] border border-hairline-on-dark hover:border-muted",
 };
 
 export function Button({

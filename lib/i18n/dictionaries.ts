@@ -55,6 +55,44 @@ const en = {
   // Locale switcher
   "locale.english": "English",
   "locale.vietnamese": "Tiếng Việt",
+
+  // DB Tool
+  "dbtool.title": "DB Tool",
+  "dbtool.env": "Env",
+  "dbtool.back_home": "Home",
+  "dbtool.error_unauthenticated": "You must be signed in.",
+  "dbtool.error_no_connection":
+    "No connection configured. Open Env and set DB_HOST / DB_USER / DB_NAME.",
+  "dbtool.error_empty_statement": "Enter a SQL statement to run.",
+  "dbtool.error_snippet_required": "Tab, title and body are required.",
+  "dbtool.sql_placeholder": "SELECT * FROM users LIMIT 10;",
+  "dbtool.run": "Run",
+  "dbtool.running": "Running…",
+  "dbtool.no_results": "Run a statement to see results here.",
+  "dbtool.rows_affected": "rows affected",
+  "dbtool.duration_ms": "ms",
+  "dbtool.settings_title": "Environment",
+  "dbtool.save": "Save",
+  "dbtool.saving": "Saving…",
+  "dbtool.test": "Test connection",
+  "dbtool.testing": "Testing…",
+  "dbtool.test_ok": "Connected",
+  "dbtool.new_snippet": "New snippet",
+  "dbtool.edit": "Edit",
+  "dbtool.delete": "Delete",
+  "dbtool.cancel": "Cancel",
+  "dbtool.tab": "Tab",
+  "dbtool.snippet_title": "Title",
+  "dbtool.snippet_body": "SQL body",
+  "dbtool.no_snippets": "No snippets yet.",
+  "dbtool.confirm_delete": "Delete this snippet?",
+
+  // Dashboard
+  "dashboard.title": "Tools",
+  "dashboard.subtitle": "Internal tools for the team. Pick one to get started.",
+  "dashboard.open": "Open",
+  "dashboard.dbtool_name": "DB Tool",
+  "dashboard.dbtool_desc": "Run SQL against your database with shared snippets.",
 } as const;
 
 const vi: Record<keyof typeof en, string> = {
@@ -104,6 +142,44 @@ const vi: Record<keyof typeof en, string> = {
   // Locale switcher
   "locale.english": "English",
   "locale.vietnamese": "Tiếng Việt",
+
+  // DB Tool
+  "dbtool.title": "Công cụ DB",
+  "dbtool.env": "Env",
+  "dbtool.back_home": "Trang chủ",
+  "dbtool.error_unauthenticated": "Bạn cần đăng nhập.",
+  "dbtool.error_no_connection":
+    "Chưa cấu hình kết nối. Mở Env và đặt DB_HOST / DB_USER / DB_NAME.",
+  "dbtool.error_empty_statement": "Nhập câu lệnh SQL để chạy.",
+  "dbtool.error_snippet_required": "Cần nhập tab, tiêu đề và nội dung.",
+  "dbtool.sql_placeholder": "SELECT * FROM users LIMIT 10;",
+  "dbtool.run": "Chạy",
+  "dbtool.running": "Đang chạy…",
+  "dbtool.no_results": "Chạy câu lệnh để xem kết quả ở đây.",
+  "dbtool.rows_affected": "dòng bị ảnh hưởng",
+  "dbtool.duration_ms": "ms",
+  "dbtool.settings_title": "Môi trường",
+  "dbtool.save": "Lưu",
+  "dbtool.saving": "Đang lưu…",
+  "dbtool.test": "Kiểm tra kết nối",
+  "dbtool.testing": "Đang kiểm tra…",
+  "dbtool.test_ok": "Đã kết nối",
+  "dbtool.new_snippet": "Snippet mới",
+  "dbtool.edit": "Sửa",
+  "dbtool.delete": "Xoá",
+  "dbtool.cancel": "Huỷ",
+  "dbtool.tab": "Tab",
+  "dbtool.snippet_title": "Tiêu đề",
+  "dbtool.snippet_body": "Nội dung SQL",
+  "dbtool.no_snippets": "Chưa có snippet nào.",
+  "dbtool.confirm_delete": "Xoá snippet này?",
+
+  // Dashboard
+  "dashboard.title": "Công cụ",
+  "dashboard.subtitle": "Bộ công cụ nội bộ cho team. Chọn một công cụ để bắt đầu.",
+  "dashboard.open": "Mở",
+  "dashboard.dbtool_name": "Công cụ DB",
+  "dashboard.dbtool_desc": "Chạy SQL lên database với snippet dùng chung.",
 };
 
 export type MessageKey = keyof typeof en;
