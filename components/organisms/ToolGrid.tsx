@@ -3,6 +3,7 @@ import Link from "next/link";
 type Tool = {
   name: string;
   description: string;
+  icon: string;
   href?: string;
 };
 
@@ -10,52 +11,64 @@ const TOOLS: Tool[] = [
   {
     name: "Release Procedure",
     description:
-      "Build & store release checklists from trilingual (JA/EN/VI) templates. Auto-fills PR links from your release branches.",
+      "Dựng & lưu checklist release từ template tam ngữ (JA/EN/VI). Tự điền link PR từ danh sách branch.",
+    icon: "🚀",
     href: "/release-procedure",
   },
   {
     name: "SQL Runner",
-    description: "Run SQL snippets against configured databases.",
+    description: "Chạy các đoạn SQL trên database đã cấu hình.",
+    icon: "🗄️",
   },
   {
     name: "Env Diff",
-    description: "Compare environment variables across environments.",
+    description: "So sánh biến môi trường giữa các environment.",
+    icon: "🔍",
   },
 ];
 
 function ToolCard({ tool }: { tool: Tool }) {
-  const body = (
+  const live = Boolean(tool.href);
+  return (
     <div
-      className={`flex h-full flex-col gap-xs rounded-lg border border-hairline bg-canvas p-lg transition-colors ${
-        tool.href ? "hover:border-primary" : "opacity-60"
+      className={`group relative flex h-full flex-col gap-sm rounded-xl border bg-canvas p-lg transition-all duration-150 ${
+        live
+          ? "border-hairline hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
+          : "border-hairline opacity-60"
       }`}
     >
-      <div className="flex items-center justify-between gap-sm">
-        <h3 className="text-heading-5 text-ink">{tool.name}</h3>
-        {tool.href ? null : (
+      <div className="flex items-start justify-between">
+        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-heading-3">
+          {tool.icon}
+        </div>
+        {live ? (
+          <span className="text-heading-5 text-primary opacity-0 transition-opacity group-hover:opacity-100">
+            →
+          </span>
+        ) : (
           <span className="rounded-full bg-surface px-xs py-xxs text-micro-uppercase text-stone">
             Soon
           </span>
         )}
       </div>
+      <h3 className="text-heading-5 text-ink">{tool.name}</h3>
       <p className="text-body-sm text-steel">{tool.description}</p>
     </div>
-  );
-
-  if (!tool.href) return body;
-  return (
-    <Link href={tool.href} className="block">
-      {body}
-    </Link>
   );
 }
 
 export function ToolGrid() {
   return (
     <div className="grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3">
-      {TOOLS.map((tool) => (
-        <ToolCard key={tool.name} tool={tool} />
-      ))}
+      {TOOLS.map((tool) =>
+        tool.href ? (
+          <Link key={tool.name} href={tool.href} className="block">
+            <ToolCard tool={tool} />
+          </Link>
+        ) : (
+          <ToolCard key={tool.name} tool={tool} />
+        ),
+      )}
     </div>
   );
 }

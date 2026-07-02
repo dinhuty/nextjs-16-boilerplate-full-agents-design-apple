@@ -288,13 +288,30 @@ export function ProcedureBuilder({ templates, initial }: Props) {
           </div>
           {templates.length === 0 ? (
             <p className="text-caption text-stone">
-              No templates yet.{" "}
+              Chưa có template nào.{" "}
               <Link href="/release-procedure/templates" className="underline">
-                Create one
+                Tạo template
               </Link>
               .
             </p>
           ) : null}
+          <div className="flex items-center justify-between gap-sm border-t border-hairline pt-sm">
+            <p className="text-caption text-stone">
+              Hoặc thêm block trống để tự nhập nội dung.
+            </p>
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() =>
+                setBlocks((p) => [
+                  ...p,
+                  { templateId: null, name: "New block", repo: "", body: "" },
+                ])
+              }
+            >
+              + Blank block
+            </Button>
+          </div>
         </div>
 
         {/* Blocks (drag to reorder) */}
@@ -315,26 +332,38 @@ export function ProcedureBuilder({ templates, initial }: Props) {
               }}
               className="flex flex-col gap-xs rounded-lg border border-hairline bg-canvas p-md"
             >
-              <div className="flex items-center justify-between gap-sm">
-                <div className="flex items-center gap-xs">
-                  <span className="cursor-grab text-stone" title="Drag">
-                    ⠿
-                  </span>
-                  <span className="text-body-md-medium text-ink">
-                    {block.name}
-                  </span>
-                  {block.repo ? (
-                    <span className="rounded-full bg-surface px-xs py-xxs text-micro text-steel">
-                      {block.repo}
-                    </span>
-                  ) : null}
+              <div className="flex items-center gap-xs">
+                <span className="cursor-grab text-stone" title="Kéo để đổi thứ tự">
+                  ⠿
+                </span>
+                <Input
+                  value={block.name}
+                  onChange={(e) =>
+                    setBlocks((p) =>
+                      p.map((x, j) =>
+                        j === i ? { ...x, name: e.target.value } : x,
+                      ),
+                    )
+                  }
+                  placeholder="Tên block"
+                  className="flex-1"
+                />
+                <div className="w-40 shrink-0">
+                  <Combobox
+                    value={block.repo}
+                    onChange={(v) =>
+                      setBlocks((p) =>
+                        p.map((x, j) => (j === i ? { ...x, repo: v } : x)),
+                      )
+                    }
+                    options={KNOWN_REPOS}
+                    placeholder="repo (tùy chọn)"
+                  />
                 </div>
                 <Button
                   variant="ghost"
                   type="button"
-                  onClick={() =>
-                    setBlocks((p) => p.filter((_, j) => j !== i))
-                  }
+                  onClick={() => setBlocks((p) => p.filter((_, j) => j !== i))}
                 >
                   Remove
                 </Button>
