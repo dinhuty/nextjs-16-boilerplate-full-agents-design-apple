@@ -1,0 +1,31 @@
+# Development override — live-reload the app inside Docker.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   (or: bash run.sh up)
+#
+# Source is bind-mounted, so edits hot-reload with no image rebuild. node_modules
+# and .next live in CONTAINER volumes (installed with Linux binaries) — a host
+# node_modules would break Next SWC / lightningcss across macOS <-> Linux.
+# `yarn add` on the host + `bash run.sh up` re-syncs deps (no --build needed).
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    container_name: zen-app-dev
+    restart: "no"
+    command: sh -c "yarn install && yarn next dev -p 3021 -H 0.0.0.0"
+    environment:
+      NODE_ENV: development
+      # Talk to the db service over the compose network (container port 5432).
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-zen}
+      # Reliable file-watching for bind mounts on Docker Desktop (macOS/Windows).
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - .:/app
+      - dev_node_modules:/app/node_modules
+      - dev_next:/app/.next
+
+volumes:
+  dev_node_modules:
+  dev_next:

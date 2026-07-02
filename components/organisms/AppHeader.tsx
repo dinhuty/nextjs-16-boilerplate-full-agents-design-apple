@@ -4,7 +4,7 @@ import { SignOutButton } from "@/components/organisms/SignOutButton";
 export function AppHeader({ username }: { username: string }) {
   return (
     <header className="sticky top-0 z-10 border-b border-hairline bg-canvas/85 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-md">
+      <div className="mx-auto flex h-14 max-w-[64rem] items-center justify-between px-md">
         <Link href="/" className="text-heading-5 text-ink">
           Zen
         </Link>

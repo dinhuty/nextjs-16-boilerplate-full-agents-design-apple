@@ -24,6 +24,15 @@ EXPOSE 3021
 # compose overrides this to `yarn install && next dev` against the mounted source.
 CMD ["yarn", "dev"]
 
+# ----- migrator: apply Drizzle migrations before the app starts (compose runs
+#        this to completion first). Reuses deps' node_modules (has drizzle-kit);
+#        the standalone runner image has neither drizzle-kit nor db/migrations. -----
+FROM deps AS migrator
+WORKDIR /app
+COPY drizzle.config.ts ./
+COPY db ./db
+CMD ["yarn", "db:migrate"]
+
 # ----- runner: minimal runtime image -----
 FROM node:22-alpine AS runner
 WORKDIR /app

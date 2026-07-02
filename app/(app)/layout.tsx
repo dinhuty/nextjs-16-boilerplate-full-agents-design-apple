@@ -8,7 +8,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-surface-soft">
       <AppHeader username={user.username} />
-      <main className="mx-auto max-w-5xl px-md py-xl">{children}</main>
+      <main className="mx-auto max-w-[64rem] px-md py-xl">{children}</main>
     </div>
   );
 }

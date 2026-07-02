@@ -39,12 +39,17 @@ cmd_help() {
 Usage: bash run.sh <command> [args...]
 
 App lifecycle:
-  start              yarn dev (http://localhost:3021)
+  start              yarn dev on the HOST (http://localhost:3021)
   build              next build
   prod               yarn build && yarn start
   lint               yarn lint
   typecheck          yarn typecheck (tsc --noEmit)
   verify             yarn lint && yarn typecheck
+
+Dev in Docker (hot reload, source bind-mounted):
+  up [-d]            Run app (yarn dev) + db in Docker with live reload. No rebuild on code change.
+  up:build           Same as `up` but rebuild the dev image first (after Dockerfile changes).
+  down [-v]          Stop the dev stack (add -v to also drop node_modules/.next/db volumes).
 
 Database (Postgres in Docker + Drizzle):
   db                 Start the Postgres container (localhost:5450, user/db = postgres/zen).
@@ -68,6 +73,23 @@ cmd_prod()      { yarn build && yarn start; }
 cmd_lint()      { yarn lint; }
 cmd_typecheck() { yarn typecheck; }
 cmd_verify()    { yarn verify; }
+
+DEV_FILES=(-f docker-compose.yml -f docker-compose.dev.yml)
+
+cmd_up() {
+  require_docker
+  docker compose "${DEV_FILES[@]}" up "$@"
+}
+
+cmd_up_build() {
+  require_docker
+  docker compose "${DEV_FILES[@]}" up --build "$@"
+}
+
+cmd_down() {
+  require_docker
+  docker compose "${DEV_FILES[@]}" down "$@"
+}
 
 cmd_db() {
   require_docker
@@ -147,6 +169,9 @@ cmd_deploy_prd() {
 
 case "$CMD" in
   start|dev)      cmd_start ;;
+  up)             cmd_up "$@" ;;
+  up:build)       cmd_up_build "$@" ;;
+  down)           cmd_down "$@" ;;
   build)          cmd_build ;;
   prod)           cmd_prod ;;
   lint)           cmd_lint ;;
