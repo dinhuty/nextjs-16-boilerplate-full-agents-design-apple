@@ -18,6 +18,18 @@ services:
       timeout: 5s
       retries: 5
 
+  migrate:
+    build:
+      context: .
+      target: migrator
+    container_name: zen-migrate
+    restart: "no"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/zen}
+    depends_on:
+      db:
+        condition: service_healthy
+
   app:
     build: .
     container_name: zen-app
@@ -30,6 +42,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   pgdata:
