@@ -33,12 +33,31 @@ export type Task = {
   docUrl: string;
   prs: TaskPr[];
   note: string;
+  tags: string[];
 };
 
 type ProcedureOption = { id: number; title: string };
 
+// Reserved tag: marks a task as released (rendered as a distinct green badge).
+const RELEASE_TAG = "release";
+
 function prUrl(repo: string, pr: string): string {
   return `https://github.com/air-closet/${repo}/pull/${pr}`;
+}
+
+function TagChip({ tag }: { tag: string }) {
+  const isRelease = tag === RELEASE_TAG;
+  return (
+    <span
+      className={
+        isRelease
+          ? "inline-flex items-center gap-xxs rounded-full bg-[#22a06b]/12 px-sm py-xxs text-caption font-medium text-[#22a06b]"
+          : "inline-flex items-center rounded-full bg-surface px-sm py-xxs text-caption text-steel"
+      }
+    >
+      {isRelease ? "✅ released" : `#${tag}`}
+    </span>
+  );
 }
 
 function LinkChip({ href, label }: { href: string; label: string }) {
@@ -78,13 +97,21 @@ export function TaskManager({
     const q = query.trim().toLowerCase();
     if (!q) return tasks;
     return tasks.filter((t) =>
-      `${t.title} ${t.description} ${t.note} ${t.prs
+      `${t.title} ${t.description} ${t.note} ${t.tags.join(" ")} ${t.prs
         .map((p) => `${p.repo} ${p.branch} ${p.pr}`)
         .join(" ")}`
         .toLowerCase()
         .includes(q),
     );
   }, [tasks, query]);
+
+  // Suggestions for the tag editor: the reserved "release" tag + every tag
+  // already used across the user's tasks.
+  const allTags = useMemo(() => {
+    const s = new Set<string>([RELEASE_TAG]);
+    for (const t of tasks) for (const tag of t.tags) s.add(tag);
+    return [...s].sort();
+  }, [tasks]);
 
   const { page, setPage, totalPages, total, pageItems } = usePaged(filtered, 8);
 
@@ -139,6 +166,14 @@ export function TaskManager({
                   <DeleteTaskButton id={t.id} onDone={() => router.refresh()} />
                 </div>
               </div>
+
+              {t.tags.length > 0 ? (
+                <div className="flex flex-wrap gap-xs">
+                  {t.tags.map((tag) => (
+                    <TagChip key={tag} tag={tag} />
+                  ))}
+                </div>
+              ) : null}
 
               {t.description.trim() ? (
                 <p className="whitespace-pre-wrap text-body-sm text-slate">
@@ -205,6 +240,7 @@ export function TaskManager({
         {edit ? (
           <TaskForm
             procedures={procedures}
+            suggestions={allTags}
             initial={edit.mode === "edit" ? edit.task : undefined}
             onDone={() => {
               setEdit(null);
@@ -227,15 +263,18 @@ const EMPTY: TaskInput = {
   docUrl: "",
   prs: [],
   note: "",
+  tags: [],
 };
 
 function TaskForm({
   procedures,
+  suggestions,
   initial,
   onDone,
   onCancel,
 }: {
   procedures: ProcedureOption[];
+  suggestions: string[];
   initial?: Task;
   onDone: () => void;
   onCancel: () => void;
@@ -251,6 +290,7 @@ function TaskForm({
           docUrl: initial.docUrl,
           prs: initial.prs,
           note: initial.note,
+          tags: initial.tags,
         }
       : EMPTY,
   );
@@ -401,6 +441,14 @@ function TaskForm({
         ))}
       </div>
 
+      <FormField label="Tags" htmlFor="task-tags">
+        <TagInput
+          tags={form.tags}
+          onChange={(tags) => set("tags", tags)}
+          suggestions={suggestions}
+        />
+      </FormField>
+
       <FormField label="Note" htmlFor="task-note">
         <TextArea
           id="task-note"
@@ -419,6 +467,78 @@ function TaskForm({
           {pending ? "Saving…" : "Save"}
         </Button>
       </div>
+    </div>
+  );
+}
+
+function TagInput({
+  tags,
+  onChange,
+  suggestions,
+}: {
+  tags: string[];
+  onChange: (tags: string[]) => void;
+  suggestions: string[];
+}) {
+  const [text, setText] = useState("");
+
+  function add(raw: string) {
+    const t = raw.trim().toLowerCase();
+    setText("");
+    if (!t || tags.includes(t)) return;
+    onChange([...tags, t]);
+  }
+
+  const available = suggestions.filter((s) => !tags.includes(s));
+
+  return (
+    <div className="flex flex-col gap-xs">
+      {tags.length > 0 ? (
+        <div className="flex flex-wrap gap-xs">
+          {tags.map((t) => (
+            <span
+              key={t}
+              className="inline-flex items-center gap-xxs rounded-full bg-surface px-sm py-xxs text-caption text-slate"
+            >
+              {t === RELEASE_TAG ? "✅ released" : `#${t}`}
+              <button
+                type="button"
+                onClick={() => onChange(tags.filter((x) => x !== t))}
+                className="text-stone hover:text-ink"
+                aria-label={`Bỏ tag ${t}`}
+              >
+                ✕
+              </button>
+            </span>
+          ))}
+        </div>
+      ) : null}
+      <Input
+        id="task-tags"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            add(text);
+          }
+        }}
+        placeholder="Nhập tag rồi Enter (vd: release)"
+      />
+      {available.length > 0 ? (
+        <div className="flex flex-wrap gap-xs">
+          {available.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => add(s)}
+              className="rounded-full border border-hairline px-sm py-xxs text-caption text-steel transition-colors hover:border-primary hover:text-primary"
+            >
+              + {s}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

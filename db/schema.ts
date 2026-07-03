@@ -140,6 +140,11 @@ export const tasks = pgTable("tasks", {
     .$type<TaskPr[]>()
     .default(sql`'[]'::jsonb`),
   note: text("note").notNull().default(""),
+  // Free-form labels; the reserved "release" tag marks a released task.
+  tags: jsonb("tags")
+    .notNull()
+    .$type<string[]>()
+    .default(sql`'[]'::jsonb`),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),

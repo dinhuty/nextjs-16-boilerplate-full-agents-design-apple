@@ -15,6 +15,7 @@ export type TaskInput = {
   docUrl: string;
   prs: TaskPr[];
   note: string;
+  tags: string[];
 };
 
 export type TaskResult = { ok: true } | { ok: false; error: string };
@@ -35,6 +36,8 @@ function normalize(i: TaskInput): TaskInput {
       }))
       .filter((p) => p.repo || p.branch || p.pr),
     note: i.note,
+    // Normalize tags: lowercase + trim + dedupe so "release" is a stable marker.
+    tags: [...new Set(i.tags.map((t) => t.trim().toLowerCase()).filter(Boolean))],
   };
 }
 

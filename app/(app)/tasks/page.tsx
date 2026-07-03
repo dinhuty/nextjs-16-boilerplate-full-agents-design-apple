@@ -19,6 +19,7 @@ export default async function TasksPage() {
       docUrl: tasks.docUrl,
       prs: tasks.prs,
       note: tasks.note,
+      tags: tasks.tags,
     })
     .from(tasks)
     .where(eq(tasks.userId, user.id))

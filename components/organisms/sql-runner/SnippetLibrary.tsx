@@ -217,7 +217,7 @@ export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
       </div>
 
       {/* ---------- Right: preview ---------- */}
-      <div className="lg:sticky lg:top-20 lg:h-fit">
+      <div className="min-w-0 lg:sticky lg:top-20 lg:h-fit">
         {!selected ? (
           <div className="rounded-lg border border-hairline bg-canvas p-xl text-body-sm text-stone">
             Chọn một snippet ở danh sách bên trái.
