@@ -47,7 +47,12 @@ function branchFor(
 ): ReleaseBranch | undefined {
   const key = repo.trim().toLowerCase();
   if (!key) return undefined;
-  return branches.find((b) => b.repo.trim().toLowerCase() === key);
+  const matches = branches.filter(
+    (b) => b.repo.trim().toLowerCase() === key,
+  );
+  // Prefer a row that actually has a PR filled in — guards against a duplicate
+  // repo row (e.g. an auto-added empty one) shadowing the one the user filled.
+  return matches.find((b) => b.pr.trim()) ?? matches[0];
 }
 
 function globalVars(

@@ -52,6 +52,7 @@ export default async function EditProcedurePage({
         initial={{
           id: proc.id,
           title: proc.title,
+          description: proc.description,
           language: proc.language,
           blocks: proc.blocks,
           variables: proc.variables,

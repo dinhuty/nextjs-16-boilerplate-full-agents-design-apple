@@ -43,6 +43,7 @@ type Props = {
   initial?: {
     id: number;
     title: string;
+    description: string;
     language: ProcedureLanguage;
     blocks: ProcedureBlock[];
     variables: { branches: ReleaseBranch[]; vars: Record<string, string> };
@@ -59,6 +60,7 @@ export function ProcedureBuilder({ templates, initial }: Props) {
   const [rest, setRest] = useState(
     initial ? initial.title.replace(new RegExp(`^${TITLE_PREFIX}`), "") : "",
   );
+  const [desc, setDesc] = useState(initial?.description ?? "");
   const [language, setLanguage] = useState<ProcedureLanguage>(
     initial?.language ?? "ja",
   );
@@ -77,8 +79,21 @@ export function ProcedureBuilder({ templates, initial }: Props) {
   // SQL modal: which block index is being edited (null = closed) + the draft.
   const [sqlFor, setSqlFor] = useState<number | null>(null);
   const [sqlDraft, setSqlDraft] = useState("");
-  // Collapse all block bodies to make drag-reordering easier.
-  const [collapsed, setCollapsed] = useState(false);
+  // Which block bodies are collapsed (by index). The header toggle collapses/
+  // expands all; each block also has its own toggle.
+  const [collapsedBlocks, setCollapsedBlocks] = useState<Set<number>>(
+    new Set(),
+  );
+  const allCollapsed =
+    blocks.length > 0 && blocks.every((_, i) => collapsedBlocks.has(i));
+  function toggleBlock(i: number) {
+    setCollapsedBlocks((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  }
   // Last caret/selection per block textarea → "+ Chèn SQL" inserts right there.
   const selRef = useRef<Record<number, { start: number; end: number }>>({});
 
@@ -178,6 +193,7 @@ export function ProcedureBuilder({ templates, initial }: Props) {
     setError(null);
     const payload: ProcedureInput = {
       title: fullTitle,
+      description: desc.trim(),
       language,
       blocks,
       variables: {
@@ -211,6 +227,16 @@ export function ProcedureBuilder({ templates, initial }: Props) {
                 className="h-12 w-full rounded-md bg-transparent pr-sm pl-xxs text-body-md text-ink outline-none placeholder:text-muted"
               />
             </div>
+          </div>
+          <div className="flex flex-col gap-xxs">
+            <Label htmlFor="desc">Mô tả</Label>
+            <TextArea
+              id="desc"
+              rows={2}
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              placeholder="Release này làm về gì…"
+            />
           </div>
           <div className="flex flex-col gap-xxs">
             <Label>Language</Label>
@@ -355,9 +381,15 @@ export function ProcedureBuilder({ templates, initial }: Props) {
               <Button
                 variant="secondary"
                 type="button"
-                onClick={() => setCollapsed((c) => !c)}
+                onClick={() =>
+                  setCollapsedBlocks(
+                    allCollapsed
+                      ? new Set()
+                      : new Set(blocks.map((_, i) => i)),
+                  )
+                }
               >
-                {collapsed ? "Mở rộng" : "Thu gọn"}
+                {allCollapsed ? "Mở rộng tất cả" : "Thu gọn tất cả"}
               </Button>
             ) : null}
           </div>
@@ -378,6 +410,15 @@ export function ProcedureBuilder({ templates, initial }: Props) {
                 <span className="cursor-grab text-stone" title="Kéo để đổi thứ tự">
                   ⠿
                 </span>
+                <button
+                  type="button"
+                  onClick={() => toggleBlock(i)}
+                  className="shrink-0 rounded px-xxs text-stone hover:text-ink"
+                  title={collapsedBlocks.has(i) ? "Mở rộng" : "Thu gọn"}
+                  aria-label={collapsedBlocks.has(i) ? "Mở rộng block" : "Thu gọn block"}
+                >
+                  {collapsedBlocks.has(i) ? "▸" : "▾"}
+                </button>
                 <Input
                   value={block.name}
                   onChange={(e) =>
@@ -410,7 +451,7 @@ export function ProcedureBuilder({ templates, initial }: Props) {
                   Remove
                 </Button>
               </div>
-              {!collapsed ? (
+              {!collapsedBlocks.has(i) ? (
                 <>
                   <TextArea
                     mono

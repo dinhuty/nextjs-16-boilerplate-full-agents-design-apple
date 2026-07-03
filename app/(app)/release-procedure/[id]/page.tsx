@@ -34,6 +34,7 @@ export default async function ProcedurePage({
       <ProcedureView
         id={proc.id}
         title={proc.title}
+        description={proc.description}
         language={proc.language}
         blocks={proc.blocks}
         variables={proc.variables}

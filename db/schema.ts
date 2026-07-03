@@ -81,6 +81,7 @@ export type ProcedureVariables = {
 export const releaseProcedures = pgTable("release_procedures", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
+  description: text("description").notNull().default(""),
   language: text("language").notNull().default("ja").$type<ProcedureLanguage>(),
   blocks: jsonb("blocks").notNull().$type<ProcedureBlock[]>(),
   variables: jsonb("variables").notNull().$type<ProcedureVariables>(),

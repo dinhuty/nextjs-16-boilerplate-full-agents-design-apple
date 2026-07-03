@@ -1,0 +1,1 @@
+ALTER TABLE "release_procedures" ADD COLUMN "description" text DEFAULT '' NOT NULL;

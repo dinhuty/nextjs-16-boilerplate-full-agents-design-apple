@@ -16,12 +16,20 @@ import { MarkdownPreview } from "@/components/organisms/release-procedure/Markdo
 type Props = {
   id: number;
   title: string;
+  description: string;
   language: ProcedureLanguage;
   blocks: ProcedureBlock[];
   variables: ProcedureVariables;
 };
 
-export function ProcedureView({ id, title, language, blocks, variables }: Props) {
+export function ProcedureView({
+  id,
+  title,
+  description,
+  language,
+  blocks,
+  variables,
+}: Props) {
   const [showRaw, setShowRaw] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -45,6 +53,11 @@ export function ProcedureView({ id, title, language, blocks, variables }: Props)
         <div className="flex flex-col gap-xxs">
           <h1 className="text-heading-3 text-ink">{title}</h1>
           <span className="text-caption text-stone">{langLabel}</span>
+          {description.trim() ? (
+            <p className="whitespace-pre-wrap text-body-sm text-slate">
+              {description}
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-xs">
           <Button

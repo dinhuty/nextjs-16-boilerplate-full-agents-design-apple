@@ -14,6 +14,7 @@ import { requireUser } from "@/lib/auth/dal";
 
 export type ProcedureInput = {
   title: string;
+  description: string;
   language: ProcedureLanguage;
   blocks: ProcedureBlock[];
   variables: ProcedureVariables;
@@ -25,6 +26,7 @@ export async function createProcedure(input: ProcedureInput): Promise<void> {
     .insert(releaseProcedures)
     .values({
       title: input.title,
+      description: input.description,
       language: input.language,
       blocks: input.blocks,
       variables: input.variables,
@@ -45,6 +47,7 @@ export async function updateProcedure(
     .update(releaseProcedures)
     .set({
       title: input.title,
+      description: input.description,
       language: input.language,
       blocks: input.blocks,
       variables: input.variables,
