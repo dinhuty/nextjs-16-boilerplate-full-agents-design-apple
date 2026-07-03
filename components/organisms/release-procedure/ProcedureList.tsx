@@ -3,18 +3,12 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type {
-  ProcedureBlock,
-  ProcedureLanguage,
-  ProcedureVariables,
-} from "@/db/schema";
+import type { ProcedureLanguage } from "@/db/schema";
 import { deleteProcedure } from "@/app/(app)/release-procedure/actions";
 import { LANGUAGES } from "@/lib/release-procedure/markdown";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
 import { Pagination } from "@/components/atoms/Pagination";
-import { ProcedureEditModal } from "@/components/organisms/release-procedure/ProcedureEditModal";
-import type { TemplateLite } from "@/components/organisms/release-procedure/ProcedureBuilder";
 import { usePaged } from "@/lib/use-paged";
 
 export type ProcedureRow = {
@@ -22,17 +16,9 @@ export type ProcedureRow = {
   title: string;
   language: ProcedureLanguage;
   updatedAt: Date;
-  blocks: ProcedureBlock[];
-  variables: ProcedureVariables;
 };
 
-export function ProcedureList({
-  procedures,
-  templates,
-}: {
-  procedures: ProcedureRow[];
-  templates: TemplateLite[];
-}) {
+export function ProcedureList({ procedures }: { procedures: ProcedureRow[] }) {
   const [query, setQuery] = useState("");
   const router = useRouter();
 
@@ -90,16 +76,11 @@ export function ProcedureList({
                 </span>
               </Link>
               <div className="flex shrink-0 gap-xs">
-                <ProcedureEditModal
-                  templates={templates}
-                  procedure={{
-                    id: p.id,
-                    title: p.title,
-                    language: p.language,
-                    blocks: p.blocks,
-                    variables: p.variables,
-                  }}
-                />
+                <Link href={`/release-procedure/${p.id}/edit`}>
+                  <Button variant="secondary" type="button">
+                    Edit
+                  </Button>
+                </Link>
                 <DeleteProcedureButton
                   id={p.id}
                   onDone={() => router.refresh()}

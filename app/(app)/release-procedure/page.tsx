@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { asc, desc } from "drizzle-orm";
+import { desc } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { releaseProcedures, releaseTemplates } from "@/db/schema";
+import { releaseProcedures } from "@/db/schema";
 import { requireUser } from "@/lib/auth/dal";
 import { Button } from "@/components/atoms/Button";
 import { ProcedureList } from "@/components/organisms/release-procedure/ProcedureList";
@@ -14,24 +14,9 @@ export default async function ReleaseProcedureHome() {
       title: releaseProcedures.title,
       language: releaseProcedures.language,
       updatedAt: releaseProcedures.updatedAt,
-      blocks: releaseProcedures.blocks,
-      variables: releaseProcedures.variables,
     })
     .from(releaseProcedures)
     .orderBy(desc(releaseProcedures.updatedAt));
-
-  const templates = await db
-    .select({
-      id: releaseTemplates.id,
-      category: releaseTemplates.category,
-      name: releaseTemplates.name,
-      repo: releaseTemplates.repo,
-      bodyJa: releaseTemplates.bodyJa,
-      bodyEn: releaseTemplates.bodyEn,
-      bodyVi: releaseTemplates.bodyVi,
-    })
-    .from(releaseTemplates)
-    .orderBy(asc(releaseTemplates.category), asc(releaseTemplates.name));
 
   return (
     <div className="flex flex-col gap-lg">
@@ -54,7 +39,7 @@ export default async function ReleaseProcedureHome() {
         </div>
       </div>
 
-      <ProcedureList procedures={procedures} templates={templates} />
+      <ProcedureList procedures={procedures} />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
 import { TextArea } from "@/components/atoms/TextArea";
 import { Combobox } from "@/components/atoms/Combobox";
+import { Modal } from "@/components/atoms/Modal";
 import { Pagination } from "@/components/atoms/Pagination";
 import { FormField } from "@/components/molecules/FormField";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
@@ -49,24 +50,10 @@ export function TemplateManager({ templates }: { templates: TemplateLite[] }) {
     <div className="flex flex-col gap-md">
       <div className="flex flex-wrap items-center justify-between gap-sm">
         <h2 className="text-heading-4 text-ink">Templates (master data)</h2>
-        {edit ? null : (
-          <Button type="button" onClick={() => setEdit({ mode: "new" })}>
-            + New template
-          </Button>
-        )}
+        <Button type="button" onClick={() => setEdit({ mode: "new" })}>
+          + New template
+        </Button>
       </div>
-
-      {edit ? (
-        <TemplateForm
-          key={edit.mode === "edit" ? edit.template.id : "new"}
-          initial={edit.mode === "edit" ? edit.template : undefined}
-          onDone={() => {
-            setEdit(null);
-            router.refresh();
-          }}
-          onCancel={() => setEdit(null)}
-        />
-      ) : null}
 
       <Input
         value={query}
@@ -128,6 +115,25 @@ export function TemplateManager({ templates }: { templates: TemplateLite[] }) {
           ))}
         </div>
       )}
+
+      <Modal
+        open={edit !== null}
+        onClose={() => setEdit(null)}
+        title={edit?.mode === "edit" ? "Edit template" : "New template"}
+        size="wide"
+      >
+        {edit ? (
+          <TemplateForm
+            key={edit.mode === "edit" ? edit.template.id : "new"}
+            initial={edit.mode === "edit" ? edit.template : undefined}
+            onDone={() => {
+              setEdit(null);
+              router.refresh();
+            }}
+            onCancel={() => setEdit(null)}
+          />
+        ) : null}
+      </Modal>
     </div>
   );
 }
@@ -172,10 +178,7 @@ function TemplateForm({
   }
 
   return (
-    <div className="flex flex-col gap-md rounded-lg border border-primary bg-canvas p-lg">
-      <h3 className="text-heading-5 text-ink">
-        {initial ? "Edit template" : "New template"}
-      </h3>
+    <div className="flex flex-col gap-md">
       <div className="grid grid-cols-1 gap-md sm:grid-cols-3">
         <FormField label="Category" htmlFor="tpl-category">
           <Combobox

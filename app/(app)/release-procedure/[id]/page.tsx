@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { asc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { releaseProcedures, releaseTemplates } from "@/db/schema";
+import { releaseProcedures } from "@/db/schema";
 import { ProcedureView } from "@/components/organisms/release-procedure/ProcedureView";
 import { requireUser } from "@/lib/auth/dal";
 
@@ -23,19 +23,6 @@ export default async function ProcedurePage({
     .limit(1);
   if (!proc) notFound();
 
-  const templates = await db
-    .select({
-      id: releaseTemplates.id,
-      category: releaseTemplates.category,
-      name: releaseTemplates.name,
-      repo: releaseTemplates.repo,
-      bodyJa: releaseTemplates.bodyJa,
-      bodyEn: releaseTemplates.bodyEn,
-      bodyVi: releaseTemplates.bodyVi,
-    })
-    .from(releaseTemplates)
-    .orderBy(asc(releaseTemplates.category), asc(releaseTemplates.name));
-
   return (
     <div className="flex flex-col gap-lg">
       <Link
@@ -50,7 +37,6 @@ export default async function ProcedurePage({
         language={proc.language}
         blocks={proc.blocks}
         variables={proc.variables}
-        templates={templates}
       />
     </div>
   );
