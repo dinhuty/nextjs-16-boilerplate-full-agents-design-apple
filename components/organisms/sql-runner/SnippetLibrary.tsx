@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   createSnippet,
@@ -45,10 +45,32 @@ export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
     snippets[0]?.id ?? null,
   );
   const [params, setParams] = useState<Record<string, string>>({});
+  const [ctxOpen, setCtxOpen] = useState(true);
   const [edit, setEdit] = useState<
     { mode: "new" } | { mode: "edit"; snippet: Snippet } | null
   >(null);
   const router = useRouter();
+
+  // Persist entered params (user_id, …) so a reload keeps them.
+  const STORE_KEY = "sql-runner:params";
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      // Hydrate persisted params on mount — localStorage isn't available during
+      // SSR, so this must run in an effect (start empty, then load).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (raw) setParams(JSON.parse(raw));
+    } catch {
+      // ignore malformed / unavailable storage
+    }
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(params));
+    } catch {
+      // ignore quota / unavailable storage
+    }
+  }, [params]);
 
   const categories = useMemo(
     () => [...new Set(snippets.map((s) => s.category).filter(Boolean))].sort(),
@@ -81,7 +103,7 @@ export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
       }
     }
     return [...count.entries()]
-      .filter(([, n]) => n >= 2)
+      .filter(([, n]) => n >= 3)
       .map(([p]) => p)
       .sort();
   }, [snippets]);
@@ -103,37 +125,45 @@ export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
     <div className="flex flex-col gap-lg">
       {/* ---------- Context (shared params) ---------- */}
       {contextParams.length > 0 ? (
-        <div className="flex flex-col gap-sm rounded-lg border border-hairline bg-canvas p-md">
-          <div className="flex flex-wrap items-center justify-between gap-sm">
-            <h2 className="text-heading-5 text-ink">Context</h2>
-            <p className="text-caption text-stone">
-              Điền một lần — áp dụng cho mọi snippet.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-sm sm:grid-cols-3 lg:grid-cols-4">
-            {contextParams.map((name) => (
-              <div key={name} className="flex flex-col gap-xxs">
-                <label
-                  htmlFor={`ctx-${name}`}
-                  className="font-mono text-caption text-slate"
-                >
-                  {"${" + name + "}"}
+        <div className="flex flex-col gap-xs rounded-lg border border-hairline bg-canvas px-md py-sm">
+          <button
+            type="button"
+            onClick={() => setCtxOpen((o) => !o)}
+            className="flex items-center justify-between gap-sm text-left"
+          >
+            <span className="text-body-sm-medium text-ink">
+              Context · {contextParams.length}
+            </span>
+            <span className="text-caption text-stone">
+              {ctxOpen ? "Ẩn ▲" : "điền 1 lần, dùng mọi snippet · lưu sẵn ▾"}
+            </span>
+          </button>
+          {ctxOpen ? (
+            <div className="grid grid-cols-2 gap-x-md gap-y-xs sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+              {contextParams.map((name) => (
+                <label key={name} className="flex items-center gap-xs">
+                  <span
+                    className="w-16 shrink-0 truncate font-mono text-micro text-stone"
+                    title={name}
+                  >
+                    {name}
+                  </span>
+                  <input
+                    value={params[name] ?? ""}
+                    onChange={(e) =>
+                      setParams((p) => ({ ...p, [name]: e.target.value }))
+                    }
+                    placeholder="…"
+                    className="h-9 min-w-0 flex-1 rounded-md border border-hairline bg-canvas px-xs text-body-sm text-ink outline-none transition-colors hover:border-stone focus:border-primary"
+                  />
                 </label>
-                <Input
-                  id={`ctx-${name}`}
-                  value={params[name] ?? ""}
-                  onChange={(e) =>
-                    setParams((p) => ({ ...p, [name]: e.target.value }))
-                  }
-                  placeholder={name}
-                />
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-lg lg:grid-cols-[320px_1fr]">
+      <div className="grid grid-cols-1 gap-md lg:grid-cols-[300px_1fr]">
         {/* ---------- Left: list ---------- */}
       <div className="flex flex-col gap-sm lg:sticky lg:top-20 lg:max-h-[calc(100vh-7rem)]">
         <Input
@@ -144,13 +174,13 @@ export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
         <Button type="button" onClick={() => setEdit({ mode: "new" })}>
           + New snippet
         </Button>
-        <div className="flex flex-col gap-md overflow-auto pr-xxs">
+        <div className="flex flex-col gap-sm overflow-auto pr-xxs">
           {grouped.length === 0 ? (
             <p className="text-body-sm text-stone">Không khớp.</p>
           ) : (
             grouped.map(([cat, list]) => (
-              <div key={cat} className="flex flex-col gap-xxs">
-                <h3 className="text-micro-uppercase text-stone">
+              <div key={cat} className="flex flex-col">
+                <h3 className="px-sm pb-xxs pt-xs text-micro-uppercase text-stone">
                   {cat} · {list.length}
                 </h3>
                 {list.map((s) => (
@@ -158,7 +188,7 @@ export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
                     key={s.id}
                     type="button"
                     onClick={() => select(s)}
-                    className={`truncate rounded-md px-sm py-xs text-left text-body-sm transition-colors ${
+                    className={`truncate rounded-md px-sm py-xxs text-left text-body-sm transition-colors ${
                       s.id === selectedId
                         ? "bg-primary/10 font-medium text-primary"
                         : "text-slate hover:bg-surface"
