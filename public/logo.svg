@@ -1,0 +1,7 @@
+<svg width="132" height="36" viewBox="0 0 132 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="36" height="36" rx="9" fill="#00836b" />
+  <circle cx="18" cy="18" r="9.5" fill="none" stroke="#ffffff" stroke-width="2.8"
+    stroke-linecap="round" stroke-dasharray="48 12" transform="rotate(35 18 18)" />
+  <text x="48" y="25" font-family="Inter, -apple-system, Segoe UI, sans-serif"
+    font-size="22" font-weight="600" letter-spacing="-0.5" fill="#0a0a0a">Zen</text>
+</svg>

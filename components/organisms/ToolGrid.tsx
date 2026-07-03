@@ -1,9 +1,11 @@
 import Link from "next/link";
+import type { ComponentType, SVGProps } from "react";
+import { ReleaseIcon, SqlIcon, DiffIcon } from "@/components/atoms/icons";
 
 type Tool = {
   name: string;
   description: string;
-  icon: string;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
   href?: string;
 };
 
@@ -12,18 +14,18 @@ const TOOLS: Tool[] = [
     name: "Release Procedure",
     description:
       "Dựng & lưu checklist release từ template tam ngữ (JA/EN/VI). Tự điền link PR từ danh sách branch.",
-    icon: "🚀",
+    icon: ReleaseIcon,
     href: "/release-procedure",
   },
   {
     name: "SQL Runner",
     description: "Chạy các đoạn SQL trên database đã cấu hình.",
-    icon: "🗄️",
+    icon: SqlIcon,
   },
   {
     name: "Env Diff",
     description: "So sánh biến môi trường giữa các environment.",
-    icon: "🔍",
+    icon: DiffIcon,
   },
 ];
 
@@ -38,8 +40,8 @@ function ToolCard({ tool }: { tool: Tool }) {
       }`}
     >
       <div className="flex items-start justify-between">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-heading-3">
-          {tool.icon}
+        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <tool.icon className="h-6 w-6" />
         </div>
         {live ? (
           <span className="text-heading-5 text-primary opacity-0 transition-opacity group-hover:opacity-100">
