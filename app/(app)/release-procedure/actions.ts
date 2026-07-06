@@ -38,6 +38,29 @@ export async function createProcedure(input: ProcedureInput): Promise<void> {
   redirect(`/release-procedure/${rows[0].id}`);
 }
 
+export async function duplicateProcedure(id: number): Promise<void> {
+  const user = await requireUser();
+  const [p] = await db
+    .select()
+    .from(releaseProcedures)
+    .where(eq(releaseProcedures.id, id))
+    .limit(1);
+  if (!p) return;
+  const rows = await db
+    .insert(releaseProcedures)
+    .values({
+      title: `${p.title} (copy)`,
+      description: p.description,
+      language: p.language,
+      blocks: p.blocks,
+      variables: p.variables,
+      createdBy: user.id,
+    })
+    .returning({ id: releaseProcedures.id });
+  revalidatePath("/release-procedure");
+  redirect(`/release-procedure/${rows[0].id}/edit`);
+}
+
 export async function updateProcedure(
   id: number,
   input: ProcedureInput,

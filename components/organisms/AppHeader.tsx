@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SignOutButton } from "@/components/organisms/SignOutButton";
+import { CommandHint } from "@/components/organisms/CommandHint";
 import { LogoMark } from "@/components/atoms/icons";
 
 export function AppHeader({ username }: { username: string }) {
@@ -11,6 +12,7 @@ export function AppHeader({ username }: { username: string }) {
           Zen
         </Link>
         <div className="flex items-center gap-sm">
+          <CommandHint />
           <span className="text-body-sm text-steel">{username}</span>
           <SignOutButton />
         </div>

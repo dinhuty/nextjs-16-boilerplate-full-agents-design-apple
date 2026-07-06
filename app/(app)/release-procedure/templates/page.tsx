@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { releaseTemplates } from "@/db/schema";
+import { releaseTemplates, users } from "@/db/schema";
 import { TemplateManager } from "@/components/organisms/release-procedure/TemplateManager";
 import { requireUser } from "@/lib/auth/dal";
 import { BackLink } from "@/components/atoms/BackLink";
@@ -17,8 +17,11 @@ export default async function TemplatesPage() {
       bodyJa: releaseTemplates.bodyJa,
       bodyEn: releaseTemplates.bodyEn,
       bodyVi: releaseTemplates.bodyVi,
+      updatedAt: releaseTemplates.updatedAt,
+      updatedByName: users.username,
     })
     .from(releaseTemplates)
+    .leftJoin(users, eq(releaseTemplates.updatedBy, users.id))
     .orderBy(desc(releaseTemplates.updatedAt), desc(releaseTemplates.id));
 
   return (

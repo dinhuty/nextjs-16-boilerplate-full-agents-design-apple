@@ -44,9 +44,11 @@ const TOOLS: Tool[] = [
   },
   {
     name: "Env Diff",
-    description: "So sánh biến môi trường giữa các environment.",
+    description:
+      "Dán 2 file .env/config → so sánh key (thêm / mất / đổi). Xử lý ngay trên trình duyệt, không gửi lên server.",
     icon: DiffIcon,
     accent: "#c2410c",
+    href: "/env-diff",
   },
 ];
 

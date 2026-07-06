@@ -4,7 +4,10 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ProcedureLanguage } from "@/db/schema";
-import { deleteProcedure } from "@/app/(app)/release-procedure/actions";
+import {
+  deleteProcedure,
+  duplicateProcedure,
+} from "@/app/(app)/release-procedure/actions";
 import { LANGUAGES } from "@/lib/release-procedure/markdown";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
@@ -28,7 +31,10 @@ export function ProcedureList({ procedures }: { procedures: ProcedureRow[] }) {
     return procedures.filter((p) => p.title.toLowerCase().includes(q));
   }, [procedures, query]);
 
-  const { page, setPage, totalPages, total, pageItems } = usePaged(filtered, 10);
+  const { page, setPage, totalPages, total, pageItems } = usePaged(
+    filtered,
+    10,
+  );
 
   return (
     <div className="flex flex-col gap-md">
@@ -81,6 +87,7 @@ export function ProcedureList({ procedures }: { procedures: ProcedureRow[] }) {
                     Edit
                   </Button>
                 </Link>
+                <DuplicateProcedureButton id={p.id} />
                 <DeleteProcedureButton
                   id={p.id}
                   onDone={() => router.refresh()}
@@ -91,6 +98,23 @@ export function ProcedureList({ procedures }: { procedures: ProcedureRow[] }) {
         </div>
       )}
     </div>
+  );
+}
+
+function DuplicateProcedureButton({ id }: { id: number }) {
+  const [pending, startTransition] = useTransition();
+  return (
+    <Button
+      variant="ghost"
+      type="button"
+      disabled={pending}
+      onClick={() =>
+        startTransition(async () => void (await duplicateProcedure(id)))
+      }
+      title="Clone"
+    >
+      {pending ? "…" : "Clone"}
+    </Button>
   );
 }
 

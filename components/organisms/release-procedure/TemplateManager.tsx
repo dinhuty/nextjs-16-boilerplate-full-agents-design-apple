@@ -20,7 +20,13 @@ import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { KNOWN_REPOS, KNOWN_CATEGORIES } from "@/lib/release-procedure/constants";
 import { usePaged } from "@/lib/use-paged";
 
-type EditState = { mode: "new" } | { mode: "edit"; template: TemplateLite } | null;
+// Row = template body + audit info (who last edited it, and when).
+export type TemplateRow = TemplateLite & {
+  updatedAt: Date;
+  updatedByName: string | null;
+};
+
+type EditState = { mode: "new" } | { mode: "edit"; template: TemplateRow } | null;
 
 const EMPTY: TemplateInput = {
   category: "",
@@ -31,7 +37,7 @@ const EMPTY: TemplateInput = {
   bodyVi: "",
 };
 
-export function TemplateManager({ templates }: { templates: TemplateLite[] }) {
+export function TemplateManager({ templates }: { templates: TemplateRow[] }) {
   const [edit, setEdit] = useState<EditState>(null);
   const [query, setQuery] = useState("");
   const router = useRouter();
@@ -85,16 +91,23 @@ export function TemplateManager({ templates }: { templates: TemplateLite[] }) {
               key={t.id}
               className="flex items-center justify-between gap-sm rounded-lg border border-hairline bg-canvas p-md"
             >
-              <div className="flex flex-wrap items-center gap-xs">
-                <span className="text-body-md-medium text-ink">{t.name}</span>
-                {t.category ? (
-                  <span className="rounded-full bg-primary/10 px-xs py-xxs text-micro text-primary">
-                    {t.category}
-                  </span>
-                ) : null}
-                {t.repo ? (
-                  <span className="rounded-full bg-surface px-xs py-xxs text-micro text-steel">
-                    {t.repo}
+              <div className="flex min-w-0 flex-col gap-xxs">
+                <div className="flex flex-wrap items-center gap-xs">
+                  <span className="text-body-md-medium text-ink">{t.name}</span>
+                  {t.category ? (
+                    <span className="rounded-full bg-primary/10 px-xs py-xxs text-micro text-primary">
+                      {t.category}
+                    </span>
+                  ) : null}
+                  {t.repo ? (
+                    <span className="rounded-full bg-surface px-xs py-xxs text-micro text-steel">
+                      {t.repo}
+                    </span>
+                  ) : null}
+                </div>
+                {t.updatedByName ? (
+                  <span className="text-caption text-stone">
+                    Sửa bởi {t.updatedByName} · {t.updatedAt.toLocaleDateString()}
                   </span>
                 ) : null}
               </div>

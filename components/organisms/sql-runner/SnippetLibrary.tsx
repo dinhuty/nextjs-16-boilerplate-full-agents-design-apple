@@ -41,52 +41,118 @@ function fillParams(body: string, values: Record<string, string>): string {
   });
 }
 
+// Heuristic: flag queries that can wipe data — DROP/TRUNCATE, or an
+// UPDATE/DELETE with no WHERE anywhere in the body.
+function isDestructive(body: string): boolean {
+  const sql = body.toUpperCase();
+  if (/\b(DROP|TRUNCATE)\b/.test(sql)) return true;
+  return /\b(UPDATE|DELETE)\b/.test(sql) && !/\bWHERE\b/.test(sql);
+}
+
 export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(
     snippets[0]?.id ?? null,
   );
-  const [params, setParams] = useState<Record<string, string>>({});
+  // Params are stored per named profile (e.g. staging vs production user_id).
+  const [profileState, setProfileState] = useState<{
+    active: string;
+    byName: Record<string, Record<string, string>>;
+  }>({ active: "default", byName: { default: {} } });
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [wrapTx, setWrapTx] = useState(false);
   const [ctxOpen, setCtxOpen] = useState(true);
   const [edit, setEdit] = useState<
     { mode: "new" } | { mode: "edit"; snippet: Snippet } | null
   >(null);
   const router = useRouter();
 
-  // Persist entered params (user_id, …) so a reload keeps them.
-  const STORE_KEY = "sql-runner:params";
+  const params = profileState.byName[profileState.active] ?? {};
+  function setParam(name: string, value: string) {
+    setProfileState((s) => ({
+      ...s,
+      byName: {
+        ...s.byName,
+        [s.active]: { ...(s.byName[s.active] ?? {}), [name]: value },
+      },
+    }));
+  }
+
+  // Hydrate profiles + favorites from localStorage (client-only). Migrate the
+  // old single-params key into the "default" profile on first run.
+  const PROFILES_KEY = "sql-runner:profiles";
+  const FAV_KEY = "sql-runner:favorites";
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(STORE_KEY);
-      // Hydrate persisted params on mount — localStorage isn't available during
-      // SSR, so this must run in an effect (start empty, then load).
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (raw) setParams(JSON.parse(raw));
+      const raw = localStorage.getItem(PROFILES_KEY);
+      if (raw) {
+        const p = JSON.parse(raw);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (p?.byName) setProfileState({ active: p.active ?? "default", byName: p.byName });
+      } else {
+        const old = localStorage.getItem("sql-runner:params");
+        if (old) setProfileState({ active: "default", byName: { default: JSON.parse(old) } });
+      }
+      const fav = localStorage.getItem(FAV_KEY);
+      if (fav) setFavorites(JSON.parse(fav));
     } catch {
       // ignore malformed / unavailable storage
     }
   }, []);
   useEffect(() => {
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify(params));
+      localStorage.setItem(PROFILES_KEY, JSON.stringify(profileState));
     } catch {
       // ignore quota / unavailable storage
     }
-  }, [params]);
+  }, [profileState]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(FAV_KEY, JSON.stringify(favorites));
+    } catch {
+      // ignore
+    }
+  }, [favorites]);
+
+  function toggleFavorite(id: number) {
+    setFavorites((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id]));
+  }
+
+  function addProfile() {
+    const name = window.prompt("Tên profile (vd: staging, prod):")?.trim();
+    if (!name) return;
+    setProfileState((s) => ({
+      active: name,
+      byName: { ...s.byName, [name]: s.byName[name] ?? {} },
+    }));
+  }
+  function deleteProfile() {
+    setProfileState((s) => {
+      if (s.active === "default") return s;
+      const next = { ...s.byName };
+      delete next[s.active];
+      return { active: "default", byName: next };
+    });
+  }
 
   const categories = useMemo(
     () => [...new Set(snippets.map((s) => s.category).filter(Boolean))].sort(),
     [snippets],
   );
 
-  // Flat, newest-first (server order), filtered by search, then paginated.
+  // Flat, newest-first (server order), search-filtered, favorites pinned to top.
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return snippets;
-    return snippets.filter((s) =>
-      `${s.title} ${s.category} ${s.body}`.toLowerCase().includes(q),
+    const matched = q
+      ? snippets.filter((s) =>
+          `${s.title} ${s.category} ${s.body}`.toLowerCase().includes(q),
+        )
+      : snippets;
+    const favSet = new Set(favorites);
+    return [...matched].sort(
+      (a, b) => Number(favSet.has(b.id)) - Number(favSet.has(a.id)),
     );
-  }, [snippets, query]);
+  }, [snippets, query, favorites]);
 
   const { page, setPage, totalPages, total, pageItems } = usePaged(filtered, 20);
 
@@ -111,7 +177,13 @@ export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
   const localParams = selected
     ? detectParams(selected.body).filter((p) => !contextSet.has(p))
     : [];
-  const generated = selected ? fillParams(selected.body, params) : "";
+  const filled = selected ? fillParams(selected.body, params) : "";
+  const generated = wrapTx && filled ? `BEGIN;\n\n${filled}\n\nCOMMIT;` : filled;
+  // Params still left as ${...} (nothing entered) — warn before copying.
+  const unfilled = selected
+    ? detectParams(selected.body).filter((p) => !(params[p] ?? "").trim())
+    : [];
+  const destructive = selected ? isDestructive(selected.body) : false;
 
   // Keep params across selection so context (user_id, …) persists.
   function select(s: Snippet) {
@@ -136,6 +208,43 @@ export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
             </span>
           </button>
           {ctxOpen ? (
+            <div className="flex flex-wrap items-center gap-xs border-t border-hairline-soft pt-xs">
+              <span className="text-caption text-stone">Profile:</span>
+              {Object.keys(profileState.byName).map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() =>
+                    setProfileState((s) => ({ ...s, active: name }))
+                  }
+                  className={`rounded-full px-sm py-xxs text-caption transition-colors ${
+                    profileState.active === name
+                      ? "bg-primary text-on-primary"
+                      : "bg-surface text-steel hover:text-primary"
+                  }`}
+                >
+                  {name}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={addProfile}
+                className="rounded-full border border-hairline px-sm py-xxs text-caption text-steel hover:border-primary hover:text-primary"
+              >
+                + profile
+              </button>
+              {profileState.active !== "default" ? (
+                <button
+                  type="button"
+                  onClick={deleteProfile}
+                  className="text-caption text-brand-error hover:underline"
+                >
+                  Xoá profile
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          {ctxOpen ? (
             <div className="grid grid-cols-2 gap-sm sm:grid-cols-3 lg:grid-cols-4">
               {contextParams.map((name) => (
                 <div key={name} className="flex flex-col gap-xxs">
@@ -149,9 +258,7 @@ export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
                   <input
                     id={`ctx-${name}`}
                     value={params[name] ?? ""}
-                    onChange={(e) =>
-                      setParams((p) => ({ ...p, [name]: e.target.value }))
-                    }
+                    onChange={(e) => setParam(name, e.target.value)}
                     placeholder="…"
                     className="h-9 w-full rounded-md border border-hairline bg-canvas px-sm text-body-sm text-ink outline-none transition-colors hover:border-stone focus:border-primary"
                   />
@@ -194,23 +301,42 @@ export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
             <p className="text-body-sm text-stone">Không khớp.</p>
           ) : (
             pageItems.map((s) => (
-              <button
+              <div
                 key={s.id}
-                type="button"
-                onClick={() => select(s)}
-                className={`flex items-center justify-between gap-sm rounded-md px-sm py-xxs text-left text-body-sm transition-colors ${
-                  s.id === selectedId
-                    ? "bg-primary/10 font-medium text-primary"
-                    : "text-slate hover:bg-surface"
+                className={`flex items-center gap-xxs rounded-md pr-xs transition-colors ${
+                  s.id === selectedId ? "bg-primary/10" : "hover:bg-surface"
                 }`}
               >
-                <span className="truncate">{s.title}</span>
-                {s.category ? (
-                  <span className="shrink-0 rounded-full bg-surface px-xs text-micro text-stone">
-                    {s.category}
-                  </span>
-                ) : null}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => toggleFavorite(s.id)}
+                  title={favorites.includes(s.id) ? "Bỏ ghim" : "Ghim"}
+                  aria-label={favorites.includes(s.id) ? "Bỏ ghim" : "Ghim"}
+                  className={`shrink-0 px-xs text-body-sm ${
+                    favorites.includes(s.id)
+                      ? "text-brand-warn"
+                      : "text-stone hover:text-steel"
+                  }`}
+                >
+                  {favorites.includes(s.id) ? "★" : "☆"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => select(s)}
+                  className={`flex min-w-0 flex-1 items-center justify-between gap-sm py-xxs text-left text-body-sm ${
+                    s.id === selectedId
+                      ? "font-medium text-primary"
+                      : "text-slate"
+                  }`}
+                >
+                  <span className="truncate">{s.title}</span>
+                  {s.category ? (
+                    <span className="shrink-0 rounded-full bg-surface px-xs text-micro text-stone">
+                      {s.category}
+                    </span>
+                  ) : null}
+                </button>
+              </div>
             ))
           )}
         </div>
@@ -226,7 +352,26 @@ export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
           <div className="flex flex-col gap-md rounded-lg border border-hairline bg-canvas p-lg">
             <div className="flex flex-wrap items-start justify-between gap-sm">
               <div className="flex flex-col gap-xxs">
-                <h2 className="text-heading-4 text-ink">{selected.title}</h2>
+                <div className="flex items-center gap-xs">
+                  <button
+                    type="button"
+                    onClick={() => toggleFavorite(selected.id)}
+                    title={favorites.includes(selected.id) ? "Bỏ ghim" : "Ghim"}
+                    className={
+                      favorites.includes(selected.id)
+                        ? "text-brand-warn"
+                        : "text-stone hover:text-steel"
+                    }
+                  >
+                    {favorites.includes(selected.id) ? "★" : "☆"}
+                  </button>
+                  <h2 className="text-heading-4 text-ink">{selected.title}</h2>
+                  {destructive ? (
+                    <span className="rounded-full bg-brand-error/12 px-sm py-xxs text-caption font-medium text-brand-error">
+                      destructive
+                    </span>
+                  ) : null}
+                </div>
                 <span className="text-caption text-stone">
                   {selected.category}
                 </span>
@@ -268,9 +413,7 @@ export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
                       <Input
                         id={`param-${name}`}
                         value={params[name] ?? ""}
-                        onChange={(e) =>
-                          setParams((p) => ({ ...p, [name]: e.target.value }))
-                        }
+                        onChange={(e) => setParam(name, e.target.value)}
                         placeholder={name}
                       />
                     </div>
@@ -278,6 +421,23 @@ export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
                 </div>
               </div>
             ) : null}
+
+            <div className="flex flex-wrap items-center justify-between gap-sm">
+              <label className="flex cursor-pointer items-center gap-xxs text-caption text-steel">
+                <input
+                  type="checkbox"
+                  checked={wrapTx}
+                  onChange={(e) => setWrapTx(e.target.checked)}
+                />
+                Bọc BEGIN/COMMIT
+              </label>
+              {unfilled.length > 0 ? (
+                <span className="text-caption text-brand-warn">
+                  Còn {unfilled.length} tham số trống:{" "}
+                  {unfilled.map((p) => "${" + p + "}").join(", ")}
+                </span>
+              ) : null}
+            </div>
 
             <pre className="max-h-[60vh] overflow-auto whitespace-pre rounded-md bg-surface-code p-md font-mono text-code-sm text-on-dark">
               {generated}

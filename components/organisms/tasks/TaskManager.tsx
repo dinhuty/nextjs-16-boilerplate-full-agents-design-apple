@@ -12,9 +12,11 @@ import {
   TaskBody,
   TagChip,
   RELEASE_TAG,
+  prUrl,
   type Task,
 } from "@/components/organisms/tasks/TaskBody";
 import { Button } from "@/components/atoms/Button";
+import { CopyButton } from "@/components/atoms/CopyButton";
 import { Input } from "@/components/atoms/Input";
 import { TextArea } from "@/components/atoms/TextArea";
 import { Select } from "@/components/atoms/Select";
@@ -31,6 +33,33 @@ export type { Task };
 
 type ProcedureOption = { id: number; title: string };
 
+// Reserved tag that marks a task as done (used by the "Ẩn done" filter).
+const DONE_TAG = "done";
+
+// Plain-text summary of a task for pasting into Slack / a standup note.
+function taskSummary(t: Task, procTitle: Map<number, string>): string {
+  const lines: string[] = [t.title];
+  if (t.description.trim()) lines.push(t.description.trim());
+  if (t.procedureId) {
+    lines.push(`Release: ${procTitle.get(t.procedureId) ?? "procedure"}`);
+  }
+  if (t.slackTaskUrl.trim()) lines.push(`Slack task: ${t.slackTaskUrl.trim()}`);
+  if (t.slackReviewUrl.trim())
+    lines.push(`Slack review: ${t.slackReviewUrl.trim()}`);
+  if (t.docUrl.trim()) lines.push(`Document: ${t.docUrl.trim()}`);
+  const prs = t.prs.filter((p) => p.pr.trim());
+  if (prs.length) {
+    lines.push("PRs:");
+    for (const p of prs) {
+      lines.push(
+        `- ${p.repo}${p.branch ? ` (${p.branch})` : ""}: ${prUrl(p.repo, p.pr)}`,
+      );
+    }
+  }
+  if (t.note.trim()) lines.push(`Note: ${t.note.trim()}`);
+  return lines.join("\n");
+}
+
 export function TaskManager({
   tasks,
   procedures,
@@ -44,6 +73,8 @@ export function TaskManager({
   const [query, setQuery] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [detail, setDetail] = useState<Task | null>(null);
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [hideDone, setHideDone] = useState(false);
   const router = useRouter();
 
   // Remember the chosen view across reloads.
@@ -64,20 +95,22 @@ export function TaskManager({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return tasks;
-    return tasks.filter((t) =>
-      `${t.title} ${t.description} ${t.note} ${t.tags.join(" ")} ${t.prs
+    return tasks.filter((t) => {
+      if (hideDone && t.tags.includes(DONE_TAG)) return false;
+      if (tagFilter && !t.tags.includes(tagFilter)) return false;
+      if (!q) return true;
+      return `${t.title} ${t.description} ${t.note} ${t.tags.join(" ")} ${t.prs
         .map((p) => `${p.repo} ${p.branch} ${p.pr}`)
         .join(" ")}`
         .toLowerCase()
-        .includes(q),
-    );
-  }, [tasks, query]);
+        .includes(q);
+    });
+  }, [tasks, query, tagFilter, hideDone]);
 
   // Suggestions for the tag editor: the reserved "release" tag + every tag
   // already used across the user's tasks.
   const allTags = useMemo(() => {
-    const s = new Set<string>([RELEASE_TAG]);
+    const s = new Set<string>([RELEASE_TAG, DONE_TAG]);
     for (const t of tasks) for (const tag of t.tags) s.add(tag);
     return [...s].sort();
   }, [tasks]);
@@ -126,6 +159,40 @@ export function TaskManager({
           </Button>
         </div>
       </div>
+
+      {allTags.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-xs">
+          <span className="text-caption text-stone">Lọc:</span>
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => {
+                setTagFilter(tagFilter === tag ? null : tag);
+                setPage(1);
+              }}
+              className={`rounded-full px-sm py-xxs text-caption transition-colors ${
+                tagFilter === tag
+                  ? "bg-primary text-on-primary"
+                  : "bg-surface text-steel hover:text-primary"
+              }`}
+            >
+              {tag === RELEASE_TAG ? "released" : `#${tag}`}
+            </button>
+          ))}
+          <label className="ml-auto flex cursor-pointer items-center gap-xxs text-caption text-steel">
+            <input
+              type="checkbox"
+              checked={hideDone}
+              onChange={(e) => {
+                setHideDone(e.target.checked);
+                setPage(1);
+              }}
+            />
+            Ẩn done
+          </label>
+        </div>
+      ) : null}
 
       <Pagination
         page={page}
@@ -210,7 +277,7 @@ export function TaskManager({
         {detail ? (
           <div className="flex flex-col gap-md">
             <TaskBody task={detail} procTitle={procTitle} />
-            <div className="flex justify-end gap-xs border-t border-hairline pt-sm">
+            <div className="flex flex-wrap justify-end gap-xs border-t border-hairline pt-sm">
               <Button
                 variant="ghost"
                 type="button"
@@ -218,6 +285,23 @@ export function TaskManager({
               >
                 ← Quay lại
               </Button>
+              {detail.prs.some((p) => p.pr.trim()) ? (
+                <Button
+                  variant="secondary"
+                  type="button"
+                  onClick={() => {
+                    for (const p of detail.prs.filter((x) => x.pr.trim())) {
+                      window.open(prUrl(p.repo, p.pr), "_blank", "noopener");
+                    }
+                  }}
+                >
+                  Mở tất cả PR
+                </Button>
+              ) : null}
+              <CopyButton
+                text={taskSummary(detail, procTitle)}
+                label="Copy tóm tắt"
+              />
               <Button
                 variant="secondary"
                 type="button"
