@@ -41,7 +41,7 @@ export default async function ProcedurePage({
     })
     .from(tasks)
     .where(and(eq(tasks.userId, user.id), eq(tasks.procedureId, procId)))
-    .orderBy(desc(tasks.updatedAt));
+    .orderBy(desc(tasks.createdAt));
 
   return (
     <div className="flex flex-col gap-lg">

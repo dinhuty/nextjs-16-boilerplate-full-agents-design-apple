@@ -17,7 +17,7 @@ export default async function ReleaseProcedureHome() {
       updatedAt: releaseProcedures.updatedAt,
     })
     .from(releaseProcedures)
-    .orderBy(desc(releaseProcedures.updatedAt));
+    .orderBy(desc(releaseProcedures.createdAt));
 
   return (
     <div className="flex flex-col gap-lg">

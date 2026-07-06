@@ -11,14 +11,14 @@ export default async function HomePage() {
   const recentProcedures = await db
     .select({ id: releaseProcedures.id, title: releaseProcedures.title })
     .from(releaseProcedures)
-    .orderBy(desc(releaseProcedures.updatedAt))
+    .orderBy(desc(releaseProcedures.createdAt))
     .limit(5);
 
   const recentTasks = await db
     .select({ id: tasks.id, title: tasks.title })
     .from(tasks)
     .where(eq(tasks.userId, user.id))
-    .orderBy(desc(tasks.updatedAt))
+    .orderBy(desc(tasks.createdAt))
     .limit(5);
 
   return (
@@ -48,7 +48,7 @@ export default async function HomePage() {
             items={recentTasks.map((t) => ({
               key: t.id,
               label: t.title,
-              href: "/tasks",
+              href: `/tasks?task=${t.id}`,
             }))}
           />
         </div>

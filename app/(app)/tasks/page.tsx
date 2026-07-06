@@ -6,8 +6,14 @@ import { requireUser } from "@/lib/auth/dal";
 import { TaskManager } from "@/components/organisms/tasks/TaskManager";
 import { BackLink } from "@/components/atoms/BackLink";
 
-export default async function TasksPage() {
+export default async function TasksPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ task?: string }>;
+}) {
   const user = await requireUser();
+  const { task } = await searchParams;
+  const openTaskId = task && /^\d+$/.test(task) ? Number(task) : null;
 
   const myTasks = await db
     .select({
@@ -25,12 +31,12 @@ export default async function TasksPage() {
     })
     .from(tasks)
     .where(eq(tasks.userId, user.id))
-    .orderBy(desc(tasks.updatedAt));
+    .orderBy(desc(tasks.createdAt));
 
   const procedures = await db
     .select({ id: releaseProcedures.id, title: releaseProcedures.title })
     .from(releaseProcedures)
-    .orderBy(desc(releaseProcedures.updatedAt));
+    .orderBy(desc(releaseProcedures.createdAt));
 
   return (
     <div className="flex flex-col gap-lg">
@@ -44,7 +50,11 @@ export default async function TasksPage() {
           document, note. Riêng tư, chỉ mình bạn thấy.
         </p>
       </div>
-      <TaskManager tasks={myTasks} procedures={procedures} />
+      <TaskManager
+        tasks={myTasks}
+        procedures={procedures}
+        openTaskId={openTaskId}
+      />
       <BackLink href="/" label="Tools" />
     </div>
   );

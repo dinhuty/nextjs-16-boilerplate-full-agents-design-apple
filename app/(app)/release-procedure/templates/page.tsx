@@ -22,7 +22,7 @@ export default async function TemplatesPage() {
     })
     .from(releaseTemplates)
     .leftJoin(users, eq(releaseTemplates.updatedBy, users.id))
-    .orderBy(desc(releaseTemplates.updatedAt), desc(releaseTemplates.id));
+    .orderBy(desc(releaseTemplates.createdAt), desc(releaseTemplates.id));
 
   return (
     <div className="flex flex-col gap-lg">

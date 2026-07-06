@@ -17,7 +17,7 @@ export default async function SqlRunnerPage() {
       body: sqlSnippets.body,
     })
     .from(sqlSnippets)
-    .orderBy(desc(sqlSnippets.updatedAt), desc(sqlSnippets.id));
+    .orderBy(desc(sqlSnippets.createdAt), desc(sqlSnippets.id));
 
   return (
     <div className="flex flex-col gap-lg">

@@ -14,13 +14,13 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     db
       .select({ id: releaseProcedures.id, title: releaseProcedures.title })
       .from(releaseProcedures)
-      .orderBy(desc(releaseProcedures.updatedAt))
+      .orderBy(desc(releaseProcedures.createdAt))
       .limit(50),
     db
       .select({ id: tasks.id, title: tasks.title })
       .from(tasks)
       .where(eq(tasks.userId, user.id))
-      .orderBy(desc(tasks.updatedAt))
+      .orderBy(desc(tasks.createdAt))
       .limit(50),
     db
       .select({
@@ -29,7 +29,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         category: sqlSnippets.category,
       })
       .from(sqlSnippets)
-      .orderBy(desc(sqlSnippets.updatedAt))
+      .orderBy(desc(sqlSnippets.createdAt))
       .limit(100),
   ]);
 

@@ -70,7 +70,11 @@ export function CommandPalette({
         sub: "Procedure",
         href: `/release-procedure/${p.id}`,
       })),
-      ...tasks.map((t) => ({ label: t.title, sub: "Task", href: "/tasks" })),
+      ...tasks.map((t) => ({
+        label: t.title,
+        sub: "Task",
+        href: `/tasks?task=${t.id}`,
+      })),
       ...snippets.map((s) => ({
         label: s.title,
         sub: s.category ? `Snippet · ${s.category}` : "Snippet",

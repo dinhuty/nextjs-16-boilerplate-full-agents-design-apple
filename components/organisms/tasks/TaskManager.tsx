@@ -66,9 +66,11 @@ function taskSummary(t: Task, procTitle: Map<number, string>): string {
 export function TaskManager({
   tasks,
   procedures,
+  openTaskId,
 }: {
   tasks: Task[];
   procedures: ProcedureOption[];
+  openTaskId?: number | null;
 }) {
   const [edit, setEdit] = useState<
     { mode: "new" } | { mode: "edit"; task: Task } | null
@@ -89,6 +91,14 @@ export function TaskManager({
   useEffect(() => {
     localStorage.setItem("tasks:view", view);
   }, [view]);
+
+  // Deep link (/tasks?task=<id>, e.g. from Cmd+K) opens that task's detail.
+  useEffect(() => {
+    if (!openTaskId) return;
+    const t = tasks.find((x) => x.id === openTaskId);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (t) setDetail(t);
+  }, [openTaskId, tasks]);
 
   const procTitle = useMemo(() => {
     const m = new Map<number, string>();
