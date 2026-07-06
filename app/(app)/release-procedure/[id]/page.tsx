@@ -50,6 +50,10 @@ export default async function ProcedurePage({
       >
         ← Release Procedure
       </Link>
+      <TaskLinkPopup
+        tasks={linkedTasks}
+        procTitle={new Map([[proc.id, proc.title]])}
+      />
       <ProcedureView
         id={proc.id}
         title={proc.title}
@@ -57,10 +61,6 @@ export default async function ProcedurePage({
         language={proc.language}
         blocks={proc.blocks}
         variables={proc.variables}
-      />
-      <TaskLinkPopup
-        tasks={linkedTasks}
-        procTitle={new Map([[proc.id, proc.title]])}
       />
     </div>
   );
