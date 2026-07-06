@@ -13,6 +13,8 @@ import {
   TagChip,
   RELEASE_TAG,
   prUrl,
+  backlogUrlOf,
+  defaultBacklogUrl,
   type Task,
 } from "@/components/organisms/tasks/TaskBody";
 import { Button } from "@/components/atoms/Button";
@@ -40,6 +42,7 @@ const DONE_TAG = "done";
 function taskSummary(t: Task, procTitle: Map<number, string>): string {
   const lines: string[] = [t.title];
   if (t.description.trim()) lines.push(t.description.trim());
+  lines.push(`Backlog: ${backlogUrlOf(t)}`);
   if (t.procedureId) {
     lines.push(`Release: ${procTitle.get(t.procedureId) ?? "procedure"}`);
   }
@@ -343,6 +346,7 @@ export function TaskManager({
 const EMPTY: TaskInput = {
   title: "",
   description: "",
+  backlogUrl: "",
   slackTaskUrl: "",
   slackReviewUrl: "",
   procedureId: null,
@@ -370,6 +374,7 @@ function TaskForm({
       ? {
           title: initial.title,
           description: initial.description,
+          backlogUrl: initial.backlogUrl,
           slackTaskUrl: initial.slackTaskUrl,
           slackReviewUrl: initial.slackReviewUrl,
           procedureId: initial.procedureId,
@@ -420,6 +425,18 @@ function TaskForm({
           value={form.description}
           onChange={(e) => set("description", e.target.value)}
           placeholder="Mô tả ngắn nội dung task…"
+        />
+      </FormField>
+      <FormField
+        label="Link Backlog"
+        htmlFor="task-backlog"
+        hint="Bỏ trống = tự suy ra từ tên task"
+      >
+        <Input
+          id="task-backlog"
+          value={form.backlogUrl}
+          onChange={(e) => set("backlogUrl", e.target.value)}
+          placeholder={defaultBacklogUrl(form.title.trim() || "AIRCLOSET-…")}
         />
       </FormField>
       <div className="grid grid-cols-1 gap-md sm:grid-cols-2">

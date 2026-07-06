@@ -5,6 +5,7 @@ export type Task = {
   id: number;
   title: string;
   description: string;
+  backlogUrl: string;
   slackTaskUrl: string;
   slackReviewUrl: string;
   procedureId: number | null;
@@ -19,6 +20,19 @@ export const RELEASE_TAG = "release";
 
 export function prUrl(repo: string, pr: string): string {
   return `https://github.com/air-closet/${repo}/pull/${pr}`;
+}
+
+// Backlog ticket URL — the task title is the ticket key (AIRCLOSET-xxxxx).
+export function defaultBacklogUrl(title: string): string {
+  return `https://air-closet.backlog.jp/view/${title.trim()}`;
+}
+
+// Effective Backlog link: the stored override, or derived from the title.
+export function backlogUrlOf(t: {
+  backlogUrl: string;
+  title: string;
+}): string {
+  return t.backlogUrl.trim() || defaultBacklogUrl(t.title);
 }
 
 export function TagChip({ tag }: { tag: string }) {
@@ -76,6 +90,7 @@ export function TaskBody({
       ) : null}
 
       <div className="flex flex-wrap gap-md">
+        <LinkChip href={backlogUrlOf(t)} label="Backlog" />
         <LinkChip href={t.slackTaskUrl} label="Slack task" />
         <LinkChip href={t.slackReviewUrl} label="Slack review" />
         <LinkChip href={t.docUrl} label="Document" />

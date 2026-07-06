@@ -9,6 +9,7 @@ import { requireUser } from "@/lib/auth/dal";
 export type TaskInput = {
   title: string;
   description: string;
+  backlogUrl: string;
   slackTaskUrl: string;
   slackReviewUrl: string;
   procedureId: number | null;
@@ -24,6 +25,7 @@ function normalize(i: TaskInput): TaskInput {
   return {
     title: i.title.trim(),
     description: i.description,
+    backlogUrl: i.backlogUrl.trim(),
     slackTaskUrl: i.slackTaskUrl.trim(),
     slackReviewUrl: i.slackReviewUrl.trim(),
     procedureId: i.procedureId,

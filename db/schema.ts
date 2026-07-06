@@ -130,6 +130,8 @@ export const tasks = pgTable("tasks", {
     .references(() => users.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   description: text("description").notNull().default(""),
+  // Optional override; empty = derive https://air-closet.backlog.jp/view/<title>.
+  backlogUrl: text("backlog_url").notNull().default(""),
   slackTaskUrl: text("slack_task_url").notNull().default(""),
   slackReviewUrl: text("slack_review_url").notNull().default(""),
   procedureId: integer("procedure_id").references(() => releaseProcedures.id, {

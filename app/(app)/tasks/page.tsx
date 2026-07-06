@@ -14,6 +14,7 @@ export default async function TasksPage() {
       id: tasks.id,
       title: tasks.title,
       description: tasks.description,
+      backlogUrl: tasks.backlogUrl,
       slackTaskUrl: tasks.slackTaskUrl,
       slackReviewUrl: tasks.slackReviewUrl,
       procedureId: tasks.procedureId,
