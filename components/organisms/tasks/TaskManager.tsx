@@ -19,7 +19,7 @@ import { Modal } from "@/components/atoms/Modal";
 import { FormField } from "@/components/molecules/FormField";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { Pagination } from "@/components/atoms/Pagination";
-import { BacklogIcon } from "@/components/atoms/icons";
+import { BacklogIcon, ListIcon, GridIcon } from "@/components/atoms/icons";
 import { KNOWN_REPOS } from "@/lib/release-procedure/constants";
 import { usePaged } from "@/lib/use-paged";
 
@@ -67,7 +67,7 @@ function LinkChip({ href, label }: { href: string; label: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-xxs rounded-full border border-hairline bg-surface px-sm py-xxs text-caption text-slate transition-colors hover:border-primary hover:text-primary"
+      className="inline-flex items-center gap-xxs text-caption text-steel underline-offset-2 transition-colors hover:text-primary hover:underline"
     >
       {label} <span aria-hidden>↗</span>
     </a>
@@ -98,7 +98,7 @@ function TaskBody({
         </p>
       ) : null}
 
-      <div className="flex flex-wrap gap-xs">
+      <div className="flex flex-wrap gap-md">
         <LinkChip href={t.slackTaskUrl} label="Slack task" />
         <LinkChip href={t.slackReviewUrl} label="Slack review" />
         <LinkChip href={t.docUrl} label="Document" />
@@ -213,18 +213,26 @@ export function TaskManager({
         />
         <div className="flex items-center gap-sm">
           <div className="flex overflow-hidden rounded-md border border-hairline">
-            {(["list", "grid"] as const).map((v) => (
+            {(
+              [
+                { v: "list", Icon: ListIcon, label: "Xem danh sách" },
+                { v: "grid", Icon: GridIcon, label: "Xem lưới" },
+              ] as const
+            ).map(({ v, Icon, label }) => (
               <button
                 key={v}
                 type="button"
                 onClick={() => setView(v)}
-                className={`px-sm py-xxs text-body-sm capitalize transition-colors ${
+                title={label}
+                aria-label={label}
+                aria-pressed={view === v}
+                className={`px-sm py-xs transition-colors ${
                   view === v
                     ? "bg-primary text-on-primary"
                     : "bg-canvas text-steel hover:bg-surface"
                 }`}
               >
-                {v}
+                <Icon className="h-[18px] w-[18px]" />
               </button>
             ))}
           </div>
@@ -252,11 +260,13 @@ export function TaskManager({
               key={t.id}
               type="button"
               onClick={() => setDetail(t)}
-              className="flex w-full items-center gap-sm rounded-lg border border-hairline border-l-4 border-l-[#7c3aed] bg-canvas p-md text-left transition-colors hover:border-primary"
+              className="flex w-full items-center gap-sm rounded-md border border-hairline bg-canvas px-md py-sm text-left transition-colors hover:border-primary hover:bg-surface-soft"
             >
               <BacklogIcon className="h-5 w-5 shrink-0" />
               <div className="flex min-w-0 flex-1 flex-col gap-xxs">
-                <span className="text-body-md-medium text-ink">{t.title}</span>
+                <span className="truncate font-mono text-body-sm-medium text-ink">
+                  {t.title}
+                </span>
                 {t.description.trim() ? (
                   <span className="truncate text-body-sm text-stone">
                     {t.description}
@@ -274,18 +284,18 @@ export function TaskManager({
           {pageItems.map((t) => (
             <div
               key={t.id}
-              className="flex flex-col gap-sm rounded-lg border border-hairline border-l-4 border-l-[#7c3aed] bg-canvas p-lg"
+              className="flex flex-col overflow-hidden rounded-lg border border-hairline bg-canvas"
             >
-              <div className="flex items-start justify-between gap-sm">
+              <div className="flex items-center justify-between gap-sm border-b border-hairline-soft bg-surface-soft px-md py-sm">
                 <button
                   type="button"
                   onClick={() => setDetail(t)}
-                  className="flex items-center gap-xs text-left"
+                  className="flex min-w-0 items-center gap-xs text-left"
                 >
                   <BacklogIcon className="h-5 w-5 shrink-0" />
-                  <h3 className="text-heading-5 text-ink hover:text-primary">
+                  <span className="truncate font-mono text-body-sm-medium text-ink transition-colors hover:text-primary">
                     {t.title}
-                  </h3>
+                  </span>
                 </button>
                 <div className="flex shrink-0 gap-xs">
                   <Button
@@ -299,7 +309,9 @@ export function TaskManager({
                 </div>
               </div>
 
-              <TaskBody task={t} procTitle={procTitle} />
+              <div className="flex flex-col gap-sm p-md">
+                <TaskBody task={t} procTitle={procTitle} />
+              </div>
             </div>
           ))}
         </div>

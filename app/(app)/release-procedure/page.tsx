@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { releaseProcedures } from "@/db/schema";
 import { requireUser } from "@/lib/auth/dal";
 import { Button } from "@/components/atoms/Button";
+import { BackLink } from "@/components/atoms/BackLink";
 import { ProcedureList } from "@/components/organisms/release-procedure/ProcedureList";
 
 export default async function ReleaseProcedureHome() {
@@ -40,6 +41,7 @@ export default async function ReleaseProcedureHome() {
       </div>
 
       <ProcedureList procedures={procedures} />
+      <BackLink href="/" label="Tools" />
     </div>
   );
 }

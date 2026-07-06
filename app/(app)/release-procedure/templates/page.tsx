@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { releaseTemplates } from "@/db/schema";
 import { TemplateManager } from "@/components/organisms/release-procedure/TemplateManager";
 import { requireUser } from "@/lib/auth/dal";
+import { BackLink } from "@/components/atoms/BackLink";
 
 export default async function TemplatesPage() {
   await requireUser();
@@ -35,6 +36,7 @@ export default async function TemplatesPage() {
         </p>
       </div>
       <TemplateManager templates={templates} />
+      <BackLink href="/release-procedure" label="Release Procedure" />
     </div>
   );
 }

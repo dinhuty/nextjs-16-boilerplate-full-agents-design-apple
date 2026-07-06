@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { tasks, releaseProcedures } from "@/db/schema";
 import { requireUser } from "@/lib/auth/dal";
 import { TaskManager } from "@/components/organisms/tasks/TaskManager";
+import { BackLink } from "@/components/atoms/BackLink";
 
 export default async function TasksPage() {
   const user = await requireUser();
@@ -43,6 +44,7 @@ export default async function TasksPage() {
         </p>
       </div>
       <TaskManager tasks={myTasks} procedures={procedures} />
+      <BackLink href="/" label="Tools" />
     </div>
   );
 }

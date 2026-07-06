@@ -98,6 +98,32 @@ export function BacklogIcon({ className, ...props }: IconProps) {
   );
 }
 
+/** List view — các hàng ngang có dấu đầu dòng. */
+export function ListIcon({ className, ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} {...base} {...props}>
+      <path d="M8 6h12" />
+      <path d="M8 12h12" />
+      <path d="M8 18h12" />
+      <path d="M4 6h.01" />
+      <path d="M4 12h.01" />
+      <path d="M4 18h.01" />
+    </svg>
+  );
+}
+
+/** Grid view — lưới 2×2 ô. */
+export function GridIcon({ className, ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} {...base} {...props}>
+      <rect x="4" y="4" width="7" height="7" rx="1.5" />
+      <rect x="13" y="4" width="7" height="7" rx="1.5" />
+      <rect x="4" y="13" width="7" height="7" rx="1.5" />
+      <rect x="13" y="13" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
 /** Env Diff — hai mũi tên lên/xuống so sánh. */
 export function DiffIcon({ className, ...props }: IconProps) {
   return (

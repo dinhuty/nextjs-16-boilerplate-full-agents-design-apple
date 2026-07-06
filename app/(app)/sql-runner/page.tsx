@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { sqlSnippets } from "@/db/schema";
 import { requireUser } from "@/lib/auth/dal";
 import { SnippetLibrary } from "@/components/organisms/sql-runner/SnippetLibrary";
+import { BackLink } from "@/components/atoms/BackLink";
 
 export default async function SqlRunnerPage() {
   await requireUser();
@@ -31,6 +32,7 @@ export default async function SqlRunnerPage() {
         </p>
       </div>
       <SnippetLibrary snippets={snippets} />
+      <BackLink href="/" label="Tools" />
     </div>
   );
 }
