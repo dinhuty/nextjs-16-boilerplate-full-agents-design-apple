@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   createTask,
@@ -9,7 +8,12 @@ import {
   deleteTask,
   type TaskInput,
 } from "@/app/(app)/tasks/actions";
-import type { TaskPr } from "@/db/schema";
+import {
+  TaskBody,
+  TagChip,
+  RELEASE_TAG,
+  type Task,
+} from "@/components/organisms/tasks/TaskBody";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
 import { TextArea } from "@/components/atoms/TextArea";
@@ -23,128 +27,9 @@ import { BacklogIcon, ListIcon, GridIcon } from "@/components/atoms/icons";
 import { KNOWN_REPOS } from "@/lib/release-procedure/constants";
 import { usePaged } from "@/lib/use-paged";
 
-export type Task = {
-  id: number;
-  title: string;
-  description: string;
-  slackTaskUrl: string;
-  slackReviewUrl: string;
-  procedureId: number | null;
-  docUrl: string;
-  prs: TaskPr[];
-  note: string;
-  tags: string[];
-};
+export type { Task };
 
 type ProcedureOption = { id: number; title: string };
-
-// Reserved tag: marks a task as released (rendered as a distinct green badge).
-const RELEASE_TAG = "release";
-
-function prUrl(repo: string, pr: string): string {
-  return `https://github.com/air-closet/${repo}/pull/${pr}`;
-}
-
-function TagChip({ tag }: { tag: string }) {
-  const isRelease = tag === RELEASE_TAG;
-  return (
-    <span
-      className={
-        isRelease
-          ? "inline-flex items-center gap-xxs rounded-full bg-[#22a06b]/12 px-sm py-xxs text-caption font-medium text-[#22a06b]"
-          : "inline-flex items-center rounded-full bg-surface px-sm py-xxs text-caption text-steel"
-      }
-    >
-      {isRelease ? "released" : `#${tag}`}
-    </span>
-  );
-}
-
-function LinkChip({ href, label }: { href: string; label: string }) {
-  if (!href.trim()) return null;
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-xxs text-caption text-steel underline-offset-2 transition-colors hover:text-primary hover:underline"
-    >
-      {label} <span aria-hidden>↗</span>
-    </a>
-  );
-}
-
-// Full task content — shared by the grid card and the detail modal.
-function TaskBody({
-  task: t,
-  procTitle,
-}: {
-  task: Task;
-  procTitle: Map<number, string>;
-}) {
-  return (
-    <>
-      {t.tags.length > 0 ? (
-        <div className="flex flex-wrap gap-xs">
-          {t.tags.map((tag) => (
-            <TagChip key={tag} tag={tag} />
-          ))}
-        </div>
-      ) : null}
-
-      {t.description.trim() ? (
-        <p className="whitespace-pre-wrap text-body-sm text-slate">
-          {t.description}
-        </p>
-      ) : null}
-
-      <div className="flex flex-wrap gap-md">
-        <LinkChip href={t.slackTaskUrl} label="Slack task" />
-        <LinkChip href={t.slackReviewUrl} label="Slack review" />
-        <LinkChip href={t.docUrl} label="Document" />
-      </div>
-
-      {t.procedureId ? (
-        <Link
-          href={`/release-procedure/${t.procedureId}`}
-          className="text-body-sm text-primary underline"
-        >
-          {procTitle.get(t.procedureId) ?? "Release procedure"}
-        </Link>
-      ) : null}
-
-      {t.prs.length > 0 ? (
-        <div className="flex flex-col gap-xxs">
-          {t.prs.map((p, i) => (
-            <div key={i} className="text-body-sm text-slate">
-              <span className="font-mono">{p.repo || "?"}</span>
-              {p.branch ? <span className="text-stone"> · {p.branch}</span> : null}
-              {p.pr ? (
-                <>
-                  {" — "}
-                  <a
-                    href={prUrl(p.repo, p.pr)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-brand-tag underline"
-                  >
-                    #{p.pr} ↗
-                  </a>
-                </>
-              ) : null}
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      {t.note.trim() ? (
-        <p className="whitespace-pre-wrap rounded-md bg-surface p-sm text-body-sm text-slate">
-          {t.note}
-        </p>
-      ) : null}
-    </>
-  );
-}
 
 export function TaskManager({
   tasks,
@@ -327,6 +212,13 @@ export function TaskManager({
             <TaskBody task={detail} procTitle={procTitle} />
             <div className="flex justify-end gap-xs border-t border-hairline pt-sm">
               <Button
+                variant="ghost"
+                type="button"
+                onClick={() => setDetail(null)}
+              >
+                ← Quay lại
+              </Button>
+              <Button
                 variant="secondary"
                 type="button"
                 onClick={() => {
@@ -337,13 +229,6 @@ export function TaskManager({
               >
                 Edit
               </Button>
-              <DeleteTaskButton
-                id={detail.id}
-                onDone={() => {
-                  setDetail(null);
-                  router.refresh();
-                }}
-              />
             </div>
           </div>
         ) : null}

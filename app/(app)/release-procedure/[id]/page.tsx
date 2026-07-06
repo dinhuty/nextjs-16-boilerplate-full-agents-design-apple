@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { releaseProcedures } from "@/db/schema";
+import { releaseProcedures, tasks } from "@/db/schema";
 import { ProcedureView } from "@/components/organisms/release-procedure/ProcedureView";
+import { TaskLinkPopup } from "@/components/organisms/tasks/TaskLinkPopup";
 import { requireUser } from "@/lib/auth/dal";
 
 export default async function ProcedurePage({
@@ -11,7 +12,7 @@ export default async function ProcedurePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireUser();
+  const user = await requireUser();
   const { id } = await params;
   const procId = Number(id);
   if (!Number.isInteger(procId)) notFound();
@@ -22,6 +23,24 @@ export default async function ProcedurePage({
     .where(eq(releaseProcedures.id, procId))
     .limit(1);
   if (!proc) notFound();
+
+  // The current user's own tasks that link to this procedure (tasks are private).
+  const linkedTasks = await db
+    .select({
+      id: tasks.id,
+      title: tasks.title,
+      description: tasks.description,
+      slackTaskUrl: tasks.slackTaskUrl,
+      slackReviewUrl: tasks.slackReviewUrl,
+      procedureId: tasks.procedureId,
+      docUrl: tasks.docUrl,
+      prs: tasks.prs,
+      note: tasks.note,
+      tags: tasks.tags,
+    })
+    .from(tasks)
+    .where(and(eq(tasks.userId, user.id), eq(tasks.procedureId, procId)))
+    .orderBy(desc(tasks.updatedAt));
 
   return (
     <div className="flex flex-col gap-lg">
@@ -38,6 +57,10 @@ export default async function ProcedurePage({
         language={proc.language}
         blocks={proc.blocks}
         variables={proc.variables}
+      />
+      <TaskLinkPopup
+        tasks={linkedTasks}
+        procTitle={new Map([[proc.id, proc.title]])}
       />
     </div>
   );
