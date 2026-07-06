@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SignOutButton } from "@/components/organisms/SignOutButton";
 import { CommandHint } from "@/components/organisms/CommandHint";
+import { ThemeToggle } from "@/components/organisms/ThemeToggle";
 import { LogoMark } from "@/components/atoms/icons";
 
 export function AppHeader({
@@ -19,6 +20,7 @@ export function AppHeader({
         </Link>
         <div className="flex items-center gap-sm">
           <CommandHint />
+          <ThemeToggle />
           {isAdmin ? (
             <Link
               href="/admin"

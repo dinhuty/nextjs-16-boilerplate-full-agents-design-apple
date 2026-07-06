@@ -51,6 +51,8 @@
   --color-surface: #f7f7f7;
   --color-surface-soft: #fafafa;
   --color-surface-code: #1c1c1e;
+  /* Modal / palette scrim — stays dark in both themes. */
+  --color-overlay: #0a0a0a;
 
   /* Hairlines / borders */
   --color-hairline: #e5e5e5;
@@ -186,6 +188,35 @@ body {
   background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
+}
+
+/* Dark theme — override the semantic tokens; every bg / text / border utility
+ * reads these vars, so the whole app flips without touching markup. Toggled by
+ * adding the `.dark` class on <html> (see ThemeToggle + the no-flash script). */
+.dark {
+  --color-canvas: #16181c;
+  --color-canvas-dark: #000000;
+  --color-surface: #23262d;
+  --color-surface-soft: #101216;
+  --color-surface-code: #0b0d10;
+
+  --color-hairline: #2c3038;
+  --color-hairline-soft: #24272e;
+
+  --color-ink: #f2f3f5;
+  --color-charcoal: #e6e8ec;
+  --color-slate: #ccd0d7;
+  --color-steel: #a3a8b2;
+  --color-stone: #808690;
+  --color-muted: #5f646d;
+
+  /* Brighten accents for contrast on dark surfaces. */
+  --color-primary: #0f9d84;
+  --color-primary-hover: #14b8a6;
+  --color-brand-tag: #5b8def;
+  --color-brand-warn: #e0a53a;
+
+  color-scheme: dark;
 }
 
 /* Rendered markdown (release-procedure preview). Uses design tokens above. */

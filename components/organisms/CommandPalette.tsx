@@ -101,7 +101,7 @@ export function CommandPalette({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-md pt-[12vh]">
-      <div className="absolute inset-0 bg-ink/40" onClick={() => setOpen(false)} />
+      <div className="absolute inset-0 bg-overlay/60" onClick={() => setOpen(false)} />
       <div className="relative z-10 flex w-full max-w-[40rem] flex-col overflow-hidden rounded-xl border border-hairline bg-canvas shadow-lg">
         <input
           ref={inputRef}

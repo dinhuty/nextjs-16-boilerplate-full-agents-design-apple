@@ -31,7 +31,7 @@ export function Modal({ open, onClose, title, children, size = "default" }: Prop
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-md">
-      <div className="absolute inset-0 bg-ink/40" onClick={onClose} />
+      <div className="absolute inset-0 bg-overlay/60" onClick={onClose} />
       <div
         className={`relative z-10 flex max-h-[90vh] w-full flex-col gap-md overflow-auto rounded-xl border border-hairline bg-canvas p-lg shadow-lg ${
           size === "wide" ? "max-w-[80rem]" : "max-w-[46rem]"

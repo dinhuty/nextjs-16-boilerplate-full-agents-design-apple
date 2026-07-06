@@ -67,7 +67,7 @@ export function SnippetLibrary({
   }>({ active: "default", byName: { default: {} } });
   const [favorites, setFavorites] = useState<number[]>([]);
   const [wrapTx, setWrapTx] = useState(false);
-  const [ctxOpen, setCtxOpen] = useState(true);
+  const [ctxOpen, setCtxOpen] = useState(false);
   const [edit, setEdit] = useState<
     { mode: "new" } | { mode: "edit"; snippet: Snippet } | null
   >(null);
@@ -203,79 +203,76 @@ export function SnippetLibrary({
   }
 
   return (
-    <div className="flex flex-col gap-lg">
-      {/* ---------- Context (shared params) ---------- */}
+    <div className="flex flex-col gap-md">
+      {/* ---------- Context (shared params) — behind a button, opens as a
+          popover so it doesn't eat vertical space. ---------- */}
       {contextParams.length > 0 ? (
-        <div className="flex flex-col gap-xs rounded-lg border border-hairline bg-canvas px-md py-sm">
+        <div className="relative flex justify-end">
           <button
             type="button"
             onClick={() => setCtxOpen((o) => !o)}
-            className="flex items-center justify-between gap-sm text-left"
+            className="flex items-center gap-xs rounded-md border border-hairline bg-canvas px-sm py-xxs text-body-sm text-steel transition-colors hover:border-primary hover:text-primary"
           >
-            <span className="text-body-sm-medium text-ink">
-              Context · {contextParams.length}
-            </span>
-            <span className="text-caption text-stone">
-              {ctxOpen ? "Ẩn ▲" : "điền 1 lần, dùng mọi snippet · lưu sẵn ▾"}
-            </span>
+            <span className="font-medium">Context · {contextParams.length}</span>
+            <span className="text-caption">{ctxOpen ? "▲" : "▾"}</span>
           </button>
           {ctxOpen ? (
-            <div className="flex flex-wrap items-center gap-xs border-t border-hairline-soft pt-xs">
-              <span className="text-caption text-stone">Profile:</span>
-              {Object.keys(profileState.byName).map((name) => (
-                <button
-                  key={name}
-                  type="button"
-                  onClick={() =>
-                    setProfileState((s) => ({ ...s, active: name }))
-                  }
-                  className={`rounded-full px-sm py-xxs text-caption transition-colors ${
-                    profileState.active === name
-                      ? "bg-primary text-on-primary"
-                      : "bg-surface text-steel hover:text-primary"
-                  }`}
-                >
-                  {name}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={addProfile}
-                className="rounded-full border border-hairline px-sm py-xxs text-caption text-steel hover:border-primary hover:text-primary"
-              >
-                + profile
-              </button>
-              {profileState.active !== "default" ? (
-                <button
-                  type="button"
-                  onClick={deleteProfile}
-                  className="text-caption text-brand-error hover:underline"
-                >
-                  Xoá profile
-                </button>
-              ) : null}
-            </div>
-          ) : null}
-          {ctxOpen ? (
-            <div className="grid grid-cols-2 gap-sm sm:grid-cols-3 lg:grid-cols-4">
-              {contextParams.map((name) => (
-                <div key={name} className="flex flex-col gap-xxs">
-                  <label
-                    htmlFor={`ctx-${name}`}
-                    className="truncate font-mono text-micro text-stone"
-                    title={name}
+            <div className="absolute right-0 top-full z-20 mt-xs flex w-full flex-col gap-sm rounded-lg border border-hairline bg-canvas p-md shadow-lg">
+              <div className="flex flex-wrap items-center gap-xs">
+                <span className="text-caption text-stone">Profile:</span>
+                {Object.keys(profileState.byName).map((name) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() =>
+                      setProfileState((s) => ({ ...s, active: name }))
+                    }
+                    className={`rounded-full px-sm py-xxs text-caption transition-colors ${
+                      profileState.active === name
+                        ? "bg-primary text-on-primary"
+                        : "bg-surface text-steel hover:text-primary"
+                    }`}
                   >
                     {name}
-                  </label>
-                  <input
-                    id={`ctx-${name}`}
-                    value={params[name] ?? ""}
-                    onChange={(e) => setParam(name, e.target.value)}
-                    placeholder="…"
-                    className="h-9 w-full rounded-md border border-hairline bg-canvas px-sm text-body-sm text-ink outline-none transition-colors hover:border-stone focus:border-primary"
-                  />
-                </div>
-              ))}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={addProfile}
+                  className="rounded-full border border-hairline px-sm py-xxs text-caption text-steel hover:border-primary hover:text-primary"
+                >
+                  + profile
+                </button>
+                {profileState.active !== "default" ? (
+                  <button
+                    type="button"
+                    onClick={deleteProfile}
+                    className="text-caption text-brand-error hover:underline"
+                  >
+                    Xoá profile
+                  </button>
+                ) : null}
+              </div>
+              <div className="grid grid-cols-2 gap-sm sm:grid-cols-3 lg:grid-cols-4">
+                {contextParams.map((name) => (
+                  <div key={name} className="flex flex-col gap-xxs">
+                    <label
+                      htmlFor={`ctx-${name}`}
+                      className="truncate font-mono text-micro text-stone"
+                      title={name}
+                    >
+                      {name}
+                    </label>
+                    <input
+                      id={`ctx-${name}`}
+                      value={params[name] ?? ""}
+                      onChange={(e) => setParam(name, e.target.value)}
+                      placeholder="…"
+                      className="h-9 w-full rounded-md border border-hairline bg-canvas px-sm text-body-sm text-ink outline-none transition-colors hover:border-stone focus:border-primary"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : null}
         </div>
