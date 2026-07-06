@@ -49,10 +49,16 @@ function isDestructive(body: string): boolean {
   return /\b(UPDATE|DELETE)\b/.test(sql) && !/\bWHERE\b/.test(sql);
 }
 
-export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
+export function SnippetLibrary({
+  snippets,
+  openSnippetId,
+}: {
+  snippets: Snippet[];
+  openSnippetId?: number | null;
+}) {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(
-    snippets[0]?.id ?? null,
+    openSnippetId ?? snippets[0]?.id ?? null,
   );
   // Params are stored per named profile (e.g. staging vs production user_id).
   const [profileState, setProfileState] = useState<{
@@ -113,6 +119,12 @@ export function SnippetLibrary({ snippets }: { snippets: Snippet[] }) {
       // ignore
     }
   }, [favorites]);
+
+  // Deep link (/sql-runner?snippet=<id>, e.g. from Cmd+K) selects that snippet.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (openSnippetId) setSelectedId(openSnippetId);
+  }, [openSnippetId]);
 
   function toggleFavorite(id: number) {
     setFavorites((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id]));

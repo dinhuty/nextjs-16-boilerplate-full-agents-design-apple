@@ -43,6 +43,11 @@ export function RegisterForm() {
         />
       </FormField>
       <ErrorMessage>{state?.error}</ErrorMessage>
+      {state?.message ? (
+        <p className="rounded-md bg-brand-green-deep/10 px-md py-sm text-body-sm text-brand-green-deep">
+          {state.message}
+        </p>
+      ) : null}
       <Button type="submit" disabled={pending}>
         {pending ? "Creating account…" : "Create account"}
       </Button>

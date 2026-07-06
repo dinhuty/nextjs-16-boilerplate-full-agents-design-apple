@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { tasks, type TaskPr } from "@/db/schema";
+import { tasks, type TaskPr, type TaskLink } from "@/db/schema";
 import { requireUser } from "@/lib/auth/dal";
 
 export type TaskInput = {
@@ -14,7 +14,9 @@ export type TaskInput = {
   slackReviewUrl: string;
   procedureId: number | null;
   docUrl: string;
+  basicDesignUrl: string;
   prs: TaskPr[];
+  links: TaskLink[];
   note: string;
   tags: string[];
 };
@@ -30,6 +32,7 @@ function normalize(i: TaskInput): TaskInput {
     slackReviewUrl: i.slackReviewUrl.trim(),
     procedureId: i.procedureId,
     docUrl: i.docUrl.trim(),
+    basicDesignUrl: i.basicDesignUrl.trim(),
     prs: i.prs
       .map((p) => ({
         repo: p.repo.trim(),
@@ -37,6 +40,9 @@ function normalize(i: TaskInput): TaskInput {
         pr: p.pr.trim(),
       }))
       .filter((p) => p.repo || p.branch || p.pr),
+    links: i.links
+      .map((l) => ({ label: l.label.trim(), url: l.url.trim() }))
+      .filter((l) => l.label || l.url),
     note: i.note,
     // Normalize tags: lowercase + trim + dedupe so "release" is a stable marker.
     tags: [...new Set(i.tags.map((t) => t.trim().toLowerCase()).filter(Boolean))],

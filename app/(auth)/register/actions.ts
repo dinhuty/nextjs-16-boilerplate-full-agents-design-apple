@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { users } from "@/db/schema";
 import { hashPassword } from "@/lib/auth/password";
 import { createSession } from "@/lib/auth/session";
+import { isAdmin } from "@/lib/auth/dal";
 import type { AuthState } from "@/app/(auth)/login/actions";
 
 export async function signUp(
@@ -32,11 +33,20 @@ export async function signUp(
   }
 
   const passwordHash = await hashPassword(password);
+  // The admin account is auto-approved (bootstrap); everyone else waits.
+  const approved = isAdmin(username);
   const inserted = await db
     .insert(users)
-    .values({ username, passwordHash })
+    .values({ username, passwordHash, approved })
     .returning({ id: users.id });
 
-  await createSession(inserted[0].id);
-  redirect("/");
+  if (approved) {
+    await createSession(inserted[0].id);
+    redirect("/");
+  }
+
+  return {
+    message:
+      "Đăng ký thành công. Tài khoản đang chờ admin duyệt — bạn sẽ đăng nhập được sau khi được chấp nhận.",
+  };
 }

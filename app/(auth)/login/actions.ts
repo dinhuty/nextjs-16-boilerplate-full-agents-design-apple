@@ -6,8 +6,9 @@ import { db } from "@/lib/db";
 import { users } from "@/db/schema";
 import { verifyPassword } from "@/lib/auth/password";
 import { createSession } from "@/lib/auth/session";
+import { isAdmin } from "@/lib/auth/dal";
 
-export type AuthState = { error?: string } | undefined;
+export type AuthState = { error?: string; message?: string } | undefined;
 
 export async function signIn(
   _prev: AuthState,
@@ -29,6 +30,10 @@ export async function signIn(
 
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     return { error: "Invalid username or password." };
+  }
+
+  if (!user.approved && !isAdmin(user.username)) {
+    return { error: "Tài khoản đang chờ admin duyệt." };
   }
 
   await createSession(user.id);

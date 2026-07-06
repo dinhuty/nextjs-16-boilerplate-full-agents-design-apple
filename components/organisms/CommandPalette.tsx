@@ -78,7 +78,7 @@ export function CommandPalette({
       ...snippets.map((s) => ({
         label: s.title,
         sub: s.category ? `Snippet · ${s.category}` : "Snippet",
-        href: "/sql-runner",
+        href: `/sql-runner?snippet=${s.id}`,
       })),
     ],
     [procedures, tasks, snippets],

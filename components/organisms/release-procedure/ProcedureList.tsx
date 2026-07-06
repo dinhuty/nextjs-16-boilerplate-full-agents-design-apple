@@ -66,12 +66,15 @@ export function ProcedureList({ procedures }: { procedures: ProcedureRow[] }) {
           {pageItems.map((p) => (
             <div
               key={p.id}
-              className="flex items-center justify-between gap-sm rounded-lg border border-hairline bg-canvas p-md transition-colors hover:border-primary"
+              className="relative flex items-center justify-between gap-sm rounded-lg border border-hairline bg-canvas p-md transition-colors hover:border-primary"
             >
+              {/* Stretched link: whole card (incl. padding) opens the detail. */}
               <Link
                 href={`/release-procedure/${p.id}`}
-                className="flex flex-1 items-center justify-between gap-sm"
-              >
+                aria-label={p.title}
+                className="absolute inset-0 rounded-lg"
+              />
+              <div className="pointer-events-none flex min-w-0 flex-1 items-center justify-between gap-sm">
                 <span className="text-body-md-medium text-ink">{p.title}</span>
                 <span className="flex items-center gap-sm text-caption text-stone">
                   <span>
@@ -80,8 +83,8 @@ export function ProcedureList({ procedures }: { procedures: ProcedureRow[] }) {
                   </span>
                   <span>{p.updatedAt.toLocaleDateString()}</span>
                 </span>
-              </Link>
-              <div className="flex shrink-0 gap-xs">
+              </div>
+              <div className="relative flex shrink-0 gap-xs">
                 <Link href={`/release-procedure/${p.id}/edit`}>
                   <Button variant="secondary" type="button">
                     Edit

@@ -50,6 +50,12 @@ function taskSummary(t: Task, procTitle: Map<number, string>): string {
   if (t.slackReviewUrl.trim())
     lines.push(`Slack review: ${t.slackReviewUrl.trim()}`);
   if (t.docUrl.trim()) lines.push(`Document: ${t.docUrl.trim()}`);
+  if (t.basicDesignUrl.trim()) {
+    lines.push(`Basic design: ${t.basicDesignUrl.trim()}`);
+  }
+  for (const l of t.links) {
+    if (l.url.trim()) lines.push(`${l.label || "Link"}: ${l.url.trim()}`);
+  }
   const prs = t.prs.filter((p) => p.pr.trim());
   if (prs.length) {
     lines.push("PRs:");
@@ -361,7 +367,9 @@ const EMPTY: TaskInput = {
   slackReviewUrl: "",
   procedureId: null,
   docUrl: "",
+  basicDesignUrl: "",
   prs: [],
+  links: [],
   note: "",
   tags: [],
 };
@@ -389,7 +397,9 @@ function TaskForm({
           slackReviewUrl: initial.slackReviewUrl,
           procedureId: initial.procedureId,
           docUrl: initial.docUrl,
+          basicDesignUrl: initial.basicDesignUrl,
           prs: initial.prs,
+          links: initial.links,
           note: initial.note,
           tags: initial.tags,
         }
@@ -485,6 +495,14 @@ function TaskForm({
             placeholder="https://…"
           />
         </FormField>
+        <FormField label="Link Basic Design" htmlFor="task-bd">
+          <Input
+            id="task-bd"
+            value={form.basicDesignUrl}
+            onChange={(e) => set("basicDesignUrl", e.target.value)}
+            placeholder="https://…"
+          />
+        </FormField>
       </div>
 
       <div className="flex flex-col gap-xs">
@@ -545,6 +563,62 @@ function TaskForm({
                 set(
                   "prs",
                   form.prs.filter((_, j) => j !== i),
+                )
+              }
+            >
+              ✕
+            </Button>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-xs">
+        <div className="flex items-center justify-between">
+          <span className="text-body-sm-medium text-slate">Link khác</span>
+          <Button
+            variant="secondary"
+            type="button"
+            onClick={() =>
+              set("links", [...form.links, { label: "", url: "" }])
+            }
+          >
+            + Link
+          </Button>
+        </div>
+        {form.links.map((l, i) => (
+          <div key={i} className="flex gap-xs">
+            <Input
+              value={l.label}
+              onChange={(e) =>
+                set(
+                  "links",
+                  form.links.map((x, j) =>
+                    j === i ? { ...x, label: e.target.value } : x,
+                  ),
+                )
+              }
+              placeholder="Tên link"
+              className="max-w-[12rem]"
+            />
+            <Input
+              value={l.url}
+              onChange={(e) =>
+                set(
+                  "links",
+                  form.links.map((x, j) =>
+                    j === i ? { ...x, url: e.target.value } : x,
+                  ),
+                )
+              }
+              placeholder="https://…"
+            />
+            <Button
+              variant="ghost"
+              type="button"
+              onClick={() =>
+                set(
+                  "links",
+                  form.links.filter((_, j) => j !== i),
                 )
               }
             >

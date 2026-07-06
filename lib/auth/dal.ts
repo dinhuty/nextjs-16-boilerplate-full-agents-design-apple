@@ -7,7 +7,13 @@ import { db } from "@/lib/db";
 import { sessions, users } from "@/db/schema";
 import { SESSION_COOKIE } from "@/lib/auth/session";
 
-export type SessionUser = { id: number; username: string };
+// The single hardcoded admin — the only account that can approve sign-ups.
+export const ADMIN_USERNAME = "dinhuty";
+export function isAdmin(username: string): boolean {
+  return username === ADMIN_USERNAME;
+}
+
+export type SessionUser = { id: number; username: string; isAdmin: boolean };
 
 // The real (DB-backed) auth check. `cache` memoizes it for one render pass so
 // multiple callers (layout, page, actions) share a single query.
@@ -30,11 +36,18 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   if (!row) return null;
   if (row.expiresAt.getTime() < Date.now()) return null;
 
-  return { id: row.id, username: row.username };
+  return { id: row.id, username: row.username, isAdmin: isAdmin(row.username) };
 });
 
 export async function requireUser(): Promise<SessionUser> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  return user;
+}
+
+// Admin-only pages call this; non-admins are bounced to the home page.
+export async function requireAdmin(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (!user.isAdmin) redirect("/");
   return user;
 }

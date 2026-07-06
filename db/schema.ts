@@ -6,6 +6,7 @@ import {
   integer,
   jsonb,
   timestamp,
+  boolean,
   unique,
 } from "drizzle-orm/pg-core";
 
@@ -13,6 +14,8 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
+  // New sign-ups start unapproved; the admin approves them before they can log in.
+  approved: boolean("approved").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -121,6 +124,9 @@ export const sqlSnippets = pgTable(
 // A PR/branch belonging to a task (a task usually spans several repos).
 export type TaskPr = { repo: string; branch: string; pr: string };
 
+// A user-added custom link on a task (name + URL).
+export type TaskLink = { label: string; url: string };
+
 // Personal task tracker — each row is private to its owner (`user_id`); the
 // tool always queries scoped to the current user.
 export const tasks = pgTable("tasks", {
@@ -138,9 +144,15 @@ export const tasks = pgTable("tasks", {
     onDelete: "set null",
   }),
   docUrl: text("doc_url").notNull().default(""),
+  basicDesignUrl: text("basic_design_url").notNull().default(""),
   prs: jsonb("prs")
     .notNull()
     .$type<TaskPr[]>()
+    .default(sql`'[]'::jsonb`),
+  // User-added custom links (name + URL).
+  links: jsonb("links")
+    .notNull()
+    .$type<TaskLink[]>()
     .default(sql`'[]'::jsonb`),
   note: text("note").notNull().default(""),
   // Free-form labels; the reserved "release" tag marks a released task.

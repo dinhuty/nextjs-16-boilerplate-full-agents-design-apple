@@ -6,8 +6,14 @@ import { requireUser } from "@/lib/auth/dal";
 import { SnippetLibrary } from "@/components/organisms/sql-runner/SnippetLibrary";
 import { BackLink } from "@/components/atoms/BackLink";
 
-export default async function SqlRunnerPage() {
+export default async function SqlRunnerPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ snippet?: string }>;
+}) {
   await requireUser();
+  const { snippet } = await searchParams;
+  const openSnippetId = snippet && /^\d+$/.test(snippet) ? Number(snippet) : null;
 
   const snippets = await db
     .select({
@@ -31,7 +37,7 @@ export default async function SqlRunnerPage() {
           Master data, mọi user thêm / sửa / xoá được.
         </p>
       </div>
-      <SnippetLibrary snippets={snippets} />
+      <SnippetLibrary snippets={snippets} openSnippetId={openSnippetId} />
       <BackLink href="/" label="Tools" />
     </div>
   );

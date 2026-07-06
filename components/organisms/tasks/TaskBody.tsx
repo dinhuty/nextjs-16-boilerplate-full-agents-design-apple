@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { TaskPr } from "@/db/schema";
+import type { TaskPr, TaskLink } from "@/db/schema";
 
 export type Task = {
   id: number;
@@ -10,7 +10,9 @@ export type Task = {
   slackReviewUrl: string;
   procedureId: number | null;
   docUrl: string;
+  basicDesignUrl: string;
   prs: TaskPr[];
+  links: TaskLink[];
   note: string;
   tags: string[];
 };
@@ -94,6 +96,10 @@ export function TaskBody({
         <LinkChip href={t.slackTaskUrl} label="Slack task" />
         <LinkChip href={t.slackReviewUrl} label="Slack review" />
         <LinkChip href={t.docUrl} label="Document" />
+        <LinkChip href={t.basicDesignUrl} label="Basic design" />
+        {t.links.map((l, i) => (
+          <LinkChip key={i} href={l.url} label={l.label || "Link"} />
+        ))}
       </div>
 
       {t.procedureId ? (
