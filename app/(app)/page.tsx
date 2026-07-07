@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { releaseProcedures, tasks } from "@/db/schema";
 import { requireUser } from "@/lib/auth/dal";
 import { ToolGrid } from "@/components/organisms/ToolGrid";
+import { PageHeader } from "@/components/atoms/PageHeader";
 
 export default async function HomePage() {
   const user = await requireUser();
@@ -22,13 +23,8 @@ export default async function HomePage() {
     .limit(5);
 
   return (
-    <div className="flex flex-col gap-lg">
-      <div className="flex flex-col gap-xxs">
-        <h1 className="text-heading-2 text-ink">Công cụ</h1>
-        <p className="text-subtitle text-steel">
-          Chọn một công cụ để bắt đầu.
-        </p>
-      </div>
+    <div className="flex flex-col gap-md">
+      <PageHeader title="Công cụ" description="Chọn một công cụ để bắt đầu." />
       <ToolGrid />
 
       {recentProcedures.length > 0 || recentTasks.length > 0 ? (

@@ -32,7 +32,7 @@ export default async function MdDocPage({
   if (!doc) notFound();
 
   return (
-    <div className="flex flex-col gap-lg">
+    <div className="flex flex-col gap-md">
       <Link href="/md-docs" className="text-caption text-stone hover:underline">
         ← Markdown Docs
       </Link>

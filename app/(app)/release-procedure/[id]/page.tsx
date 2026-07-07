@@ -46,7 +46,7 @@ export default async function ProcedurePage({
     .orderBy(desc(tasks.createdAt));
 
   return (
-    <div className="flex flex-col gap-lg">
+    <div className="flex flex-col gap-md">
       <Link
         href="/release-procedure"
         className="text-caption text-stone hover:underline"

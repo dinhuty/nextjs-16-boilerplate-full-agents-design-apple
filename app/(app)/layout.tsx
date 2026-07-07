@@ -41,7 +41,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-surface-soft">
       <AppHeader username={user.username} isAdmin={user.isAdmin} />
-      <main className="mx-auto max-w-[88rem] px-lg py-xl">{children}</main>
+      <main className="mx-auto max-w-[88rem] px-lg py-lg">{children}</main>
       <CommandPalette
         procedures={procedures}
         tasks={myTasks}

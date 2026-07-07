@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { asc } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { releaseTemplates } from "@/db/schema";
 import { ProcedureBuilder } from "@/components/organisms/release-procedure/ProcedureBuilder";
 import { requireUser } from "@/lib/auth/dal";
+import { PageHeader } from "@/components/atoms/PageHeader";
 
 export default async function NewProcedurePage() {
   await requireUser();
@@ -21,16 +21,12 @@ export default async function NewProcedurePage() {
     .orderBy(asc(releaseTemplates.category), asc(releaseTemplates.name));
 
   return (
-    <div className="flex flex-col gap-lg">
-      <div className="flex flex-col gap-xxs">
-        <Link
-          href="/release-procedure"
-          className="text-caption text-stone hover:underline"
-        >
-          ← Release Procedure
-        </Link>
-        <h1 className="text-heading-2 text-ink">New procedure</h1>
-      </div>
+    <div className="flex flex-col gap-md">
+      <PageHeader
+        backHref="/release-procedure"
+        backLabel="Release Procedure"
+        title="New procedure"
+      />
       <ProcedureBuilder templates={templates} />
     </div>
   );

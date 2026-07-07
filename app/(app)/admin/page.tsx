@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth/dal";
 import { Button } from "@/components/atoms/Button";
+import { PageHeader } from "@/components/atoms/PageHeader";
 import { BackLink } from "@/components/atoms/BackLink";
 import { approveUser, rejectUser } from "./actions";
 
@@ -23,17 +23,13 @@ export default async function AdminPage() {
     .orderBy(asc(users.username));
 
   return (
-    <div className="flex flex-col gap-lg">
-      <div className="flex flex-col gap-xxs">
-        <Link href="/" className="text-caption text-stone hover:underline">
-          ← Tools
-        </Link>
-        <h1 className="text-heading-2 text-ink">Duyệt đăng ký</h1>
-        <p className="text-body-sm text-steel">
-          User mới phải được duyệt trước khi đăng nhập được. Chỉ admin thấy trang
-          này.
-        </p>
-      </div>
+    <div className="flex flex-col gap-md">
+      <PageHeader
+        backHref="/"
+        backLabel="Tools"
+        title="Duyệt đăng ký"
+        description="User mới phải được duyệt trước khi đăng nhập. Chỉ admin thấy."
+      />
 
       <section className="flex flex-col gap-sm">
         <h2 className="text-heading-5 text-ink">Chờ duyệt ({pending.length})</h2>
