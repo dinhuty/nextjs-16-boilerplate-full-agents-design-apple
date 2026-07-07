@@ -86,7 +86,7 @@ export function CommandPalette({
       ...docs.map((d) => ({
         label: d.title,
         sub: "Doc",
-        href: `/md-docs?doc=${d.id}`,
+        href: `/md-docs/${d.id}`,
       })),
     ],
     [procedures, tasks, snippets, docs],

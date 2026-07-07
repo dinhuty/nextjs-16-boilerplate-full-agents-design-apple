@@ -3,17 +3,11 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { mdDocs, users } from "@/db/schema";
 import { requireUser } from "@/lib/auth/dal";
-import { MdDocLibrary } from "@/components/organisms/md-docs/MdDocLibrary";
+import { MdDocList } from "@/components/organisms/md-docs/MdDocList";
 import { BackLink } from "@/components/atoms/BackLink";
 
-export default async function MdDocsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ doc?: string }>;
-}) {
+export default async function MdDocsPage() {
   await requireUser();
-  const { doc } = await searchParams;
-  const openDocId = doc && /^\d+$/.test(doc) ? Number(doc) : null;
 
   const docs = await db
     .select({
@@ -40,7 +34,7 @@ export default async function MdDocsPage({
           / sửa / xoá được.
         </p>
       </div>
-      <MdDocLibrary docs={docs} openDocId={openDocId} />
+      <MdDocList docs={docs} />
       <BackLink href="/" label="Tools" />
     </div>
   );
