@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import rehypeSlug from "rehype-slug";
+import rehypeHighlight from "rehype-highlight";
 
 // Recursively collect text from a hast node (for the code-block copy button).
 type HastNode = { value?: string; children?: HastNode[] };
@@ -60,7 +61,7 @@ export function MarkdownPreview({
     <div className="markdown-preview">
       <ReactMarkdown
         remarkPlugins={breaks ? [remarkGfm, remarkBreaks] : [remarkGfm]}
-        rehypePlugins={[rehypeSlug]}
+        rehypePlugins={[rehypeSlug, [rehypeHighlight, { detect: true }]]}
         components={{
           // Mọi link mở sang tab mới.
           a({ node, ...props }) {
