@@ -15,6 +15,7 @@ export type Task = {
   links: TaskLink[];
   note: string;
   tags: string[];
+  docIds: number[];
 };
 
 // Reserved tag: marks a task as released (rendered as a distinct green badge).
@@ -71,9 +72,11 @@ function LinkChip({ href, label }: { href: string; label: string }) {
 export function TaskBody({
   task: t,
   procTitle,
+  docTitle,
 }: {
   task: Task;
   procTitle: Map<number, string>;
+  docTitle?: Map<number, string>;
 }) {
   return (
     <>
@@ -109,6 +112,21 @@ export function TaskBody({
         >
           {procTitle.get(t.procedureId) ?? "Release procedure"}
         </Link>
+      ) : null}
+
+      {docTitle && t.docIds.length > 0 ? (
+        <div className="flex flex-col gap-xxs">
+          <span className="text-caption text-stone">Docs:</span>
+          {t.docIds.map((id) => (
+            <Link
+              key={id}
+              href={`/md-docs/${id}`}
+              className="truncate text-body-sm text-primary underline"
+            >
+              {docTitle.get(id) ?? `Doc #${id}`}
+            </Link>
+          ))}
+        </div>
       ) : null}
 
       {t.prs.length > 0 ? (

@@ -1,6 +1,6 @@
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { mdDocs, users } from "@/db/schema";
+import { mdDocs, mdTags, users } from "@/db/schema";
 import { requireUser } from "@/lib/auth/dal";
 import { MdDocList } from "@/components/organisms/md-docs/MdDocList";
 import { PageHeader } from "@/components/atoms/PageHeader";
@@ -22,6 +22,11 @@ export default async function MdDocsPage() {
     .leftJoin(users, eq(mdDocs.updatedBy, users.id))
     .orderBy(desc(mdDocs.createdAt), desc(mdDocs.id));
 
+  const tags = await db
+    .select({ id: mdTags.id, name: mdTags.name, color: mdTags.color })
+    .from(mdTags)
+    .orderBy(asc(mdTags.name));
+
   return (
     <div className="flex flex-col gap-md">
       <PageHeader
@@ -30,7 +35,7 @@ export default async function MdDocsPage() {
         title="Markdown Docs"
         description="Tài liệu markdown dùng chung — render, raw, copy. Mọi user sửa được."
       />
-      <MdDocList docs={docs} />
+      <MdDocList docs={docs} tags={tags} />
       <BackLink href="/" label="Tools" />
     </div>
   );

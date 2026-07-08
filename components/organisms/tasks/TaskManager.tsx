@@ -34,6 +34,7 @@ import { usePaged } from "@/lib/use-paged";
 export type { Task };
 
 type ProcedureOption = { id: number; title: string };
+type DocOption = { id: number; title: string };
 
 // Reserved tag that marks a task as done (used by the "Ẩn done" filter).
 const DONE_TAG = "done";
@@ -72,10 +73,12 @@ function taskSummary(t: Task, procTitle: Map<number, string>): string {
 export function TaskManager({
   tasks,
   procedures,
+  docs,
   openTaskId,
 }: {
   tasks: Task[];
   procedures: ProcedureOption[];
+  docs: DocOption[];
   openTaskId?: number | null;
 }) {
   const [edit, setEdit] = useState<
@@ -111,6 +114,12 @@ export function TaskManager({
     for (const p of procedures) m.set(p.id, p.title);
     return m;
   }, [procedures]);
+
+  const docTitle = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const d of docs) m.set(d.id, d.title);
+    return m;
+  }, [docs]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -281,7 +290,7 @@ export function TaskManager({
               </div>
 
               <div className="flex flex-col gap-sm p-md">
-                <TaskBody task={t} procTitle={procTitle} />
+                <TaskBody task={t} procTitle={procTitle} docTitle={docTitle} />
               </div>
             </div>
           ))}
@@ -295,7 +304,7 @@ export function TaskManager({
       >
         {detail ? (
           <div className="flex flex-col gap-md">
-            <TaskBody task={detail} procTitle={procTitle} />
+            <TaskBody task={detail} procTitle={procTitle} docTitle={docTitle} />
             <div className="flex flex-wrap justify-end gap-xs border-t border-hairline pt-sm">
               <Button
                 variant="ghost"
@@ -345,6 +354,7 @@ export function TaskManager({
         {edit ? (
           <TaskForm
             procedures={procedures}
+            docs={docs}
             suggestions={allTags}
             initial={edit.mode === "edit" ? edit.task : undefined}
             onDone={() => {
@@ -372,21 +382,25 @@ const EMPTY: TaskInput = {
   links: [],
   note: "",
   tags: [],
+  docIds: [],
 };
 
 function TaskForm({
   procedures,
+  docs,
   suggestions,
   initial,
   onDone,
   onCancel,
 }: {
   procedures: ProcedureOption[];
+  docs: DocOption[];
   suggestions: string[];
   initial?: Task;
   onDone: () => void;
   onCancel: () => void;
 }) {
+  const docTitle = new Map(docs.map((d) => [d.id, d.title]));
   const [form, setForm] = useState<TaskInput>(
     initial
       ? {
@@ -402,6 +416,7 @@ function TaskForm({
           links: initial.links,
           note: initial.note,
           tags: initial.tags,
+          docIds: initial.docIds,
         }
       : EMPTY,
   );
@@ -626,6 +641,47 @@ function TaskForm({
             </Button>
           </div>
         ))}
+      </div>
+
+      <div className="flex flex-col gap-xs">
+        <span className="text-body-sm-medium text-slate">Docs liên kết</span>
+        <Select
+          value=""
+          onChange={(v) => {
+            if (v) set("docIds", [...new Set([...form.docIds, Number(v)])]);
+          }}
+          options={[
+            { value: "", label: "+ Thêm doc…" },
+            ...docs
+              .filter((d) => !form.docIds.includes(d.id))
+              .map((d) => ({ value: String(d.id), label: d.title })),
+          ]}
+          placeholder="+ Thêm doc…"
+        />
+        {form.docIds.length > 0 ? (
+          <div className="flex flex-wrap gap-xs">
+            {form.docIds.map((id) => (
+              <span
+                key={id}
+                className="inline-flex items-center gap-xxs rounded-full bg-surface px-sm py-xxs text-caption text-slate"
+              >
+                {docTitle.get(id) ?? `Doc #${id}`}
+                <button
+                  type="button"
+                  onClick={() =>
+                    set(
+                      "docIds",
+                      form.docIds.filter((x) => x !== id),
+                    )
+                  }
+                  className="text-stone hover:text-ink"
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <FormField label="Tags" htmlFor="task-tags">

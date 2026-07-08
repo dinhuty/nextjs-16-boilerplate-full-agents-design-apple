@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { mdDocs, users } from "@/db/schema";
+import { mdDocs, mdTags, tasks, taskDocs, users } from "@/db/schema";
 import { requireUser } from "@/lib/auth/dal";
 import { MdDocView } from "@/components/organisms/md-docs/MdDocView";
 
@@ -11,7 +11,7 @@ export default async function MdDocPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireUser();
+  const user = await requireUser();
   const { id } = await params;
   const docId = Number(id);
   if (!Number.isInteger(docId)) notFound();
@@ -31,12 +31,25 @@ export default async function MdDocPage({
     .limit(1);
   if (!doc) notFound();
 
+  const tags = await db
+    .select({ id: mdTags.id, name: mdTags.name, color: mdTags.color })
+    .from(mdTags)
+    .orderBy(asc(mdTags.name));
+
+  // The current user's own tasks that link to this doc (tasks are private).
+  const linkedTasks = await db
+    .select({ id: tasks.id, title: tasks.title })
+    .from(taskDocs)
+    .innerJoin(tasks, eq(taskDocs.taskId, tasks.id))
+    .where(and(eq(taskDocs.docId, docId), eq(tasks.userId, user.id)))
+    .orderBy(desc(tasks.createdAt));
+
   return (
     <div className="flex flex-col gap-md">
       <Link href="/md-docs" className="text-caption text-stone hover:underline">
         ← Markdown Docs
       </Link>
-      <MdDocView doc={doc} />
+      <MdDocView doc={doc} tags={tags} linkedTasks={linkedTasks} />
     </div>
   );
 }

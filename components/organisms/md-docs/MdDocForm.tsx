@@ -11,6 +11,7 @@ import { Input } from "@/components/atoms/Input";
 import { TextArea } from "@/components/atoms/TextArea";
 import { FormField } from "@/components/molecules/FormField";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
+import type { MdTagDef } from "@/components/organisms/md-docs/MdTags";
 
 export type MdDocFormInitial = {
   id: number;
@@ -21,10 +22,12 @@ export type MdDocFormInitial = {
 
 export function MdDocForm({
   initial,
+  tags = [],
   onDone,
   onCancel,
 }: {
   initial?: MdDocFormInitial;
+  tags?: MdTagDef[];
   onDone: (id?: number) => void;
   onCancel: () => void;
 }) {
@@ -33,6 +36,15 @@ export function MdDocForm({
   const [body, setBody] = useState(initial?.body ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  function addTag(name: string) {
+    const cur = tagsText
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+    if (cur.includes(name)) return;
+    setTagsText([...cur, name].join(", "));
+  }
 
   function submit() {
     setError(null);
@@ -62,10 +74,26 @@ export function MdDocForm({
             id="md-tags"
             value={tagsText}
             onChange={(e) => setTagsText(e.target.value)}
-            placeholder="release, note, guide"
+            placeholder="seed, running, debug"
           />
         </FormField>
       </div>
+      {tags.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-xs">
+          <span className="text-caption text-stone">Tag có sẵn:</span>
+          {tags.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => addTag(t.name)}
+              className="rounded-full px-sm py-xxs text-caption font-medium transition-opacity hover:opacity-80"
+              style={{ backgroundColor: `${t.color}22`, color: t.color }}
+            >
+              + #{t.name}
+            </button>
+          ))}
+        </div>
+      ) : null}
       <FormField label="Nội dung (Markdown)" htmlFor="md-body">
         <TextArea
           id="md-body"

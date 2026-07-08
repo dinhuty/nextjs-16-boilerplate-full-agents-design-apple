@@ -8,6 +8,11 @@ import { Input } from "@/components/atoms/Input";
 import { Modal } from "@/components/atoms/Modal";
 import { Pagination } from "@/components/atoms/Pagination";
 import { MdDocForm } from "@/components/organisms/md-docs/MdDocForm";
+import {
+  MdTagChip,
+  MdTagManager,
+  type MdTagDef,
+} from "@/components/organisms/md-docs/MdTags";
 import { usePaged } from "@/lib/use-paged";
 
 export type MdDocListRow = {
@@ -19,11 +24,25 @@ export type MdDocListRow = {
   updatedByName: string | null;
 };
 
-export function MdDocList({ docs }: { docs: MdDocListRow[] }) {
+export function MdDocList({
+  docs,
+  tags,
+}: {
+  docs: MdDocListRow[];
+  tags: MdTagDef[];
+}) {
   const [query, setQuery] = useState("");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [newOpen, setNewOpen] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
   const router = useRouter();
+
+  const colorOf = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const t of tags) m.set(t.name, t.color);
+    return m;
+  }, [tags]);
+  const tagColor = (n: string) => colorOf.get(n) ?? "#888888";
 
   const allTags = useMemo(() => {
     const s = new Set<string>();
@@ -56,31 +75,45 @@ export function MdDocList({ docs }: { docs: MdDocListRow[] }) {
           placeholder="Tìm doc…"
           className="max-w-[24rem]"
         />
-        <Button type="button" onClick={() => setNewOpen(true)}>
-          + New doc
-        </Button>
+        <div className="flex gap-xs">
+          <Button
+            variant="secondary"
+            type="button"
+            onClick={() => setManageOpen(true)}
+          >
+            Quản lý tag
+          </Button>
+          <Button type="button" onClick={() => setNewOpen(true)}>
+            + New doc
+          </Button>
+        </div>
       </div>
 
       {allTags.length > 0 ? (
         <div className="flex flex-wrap items-center gap-xs">
           <span className="text-caption text-stone">Lọc:</span>
-          {allTags.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() => {
-                setTagFilter(tagFilter === tag ? null : tag);
-                setPage(1);
-              }}
-              className={`rounded-full px-sm py-xxs text-caption transition-colors ${
-                tagFilter === tag
-                  ? "bg-primary text-on-primary"
-                  : "bg-surface text-steel hover:text-primary"
-              }`}
-            >
-              #{tag}
-            </button>
-          ))}
+          {allTags.map((tag) => {
+            const c = tagColor(tag);
+            const active = tagFilter === tag;
+            return (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => {
+                  setTagFilter(active ? null : tag);
+                  setPage(1);
+                }}
+                className="rounded-full px-sm py-xxs text-caption font-medium transition-colors"
+                style={
+                  active
+                    ? { backgroundColor: c, color: "#fff" }
+                    : { backgroundColor: `${c}22`, color: c }
+                }
+              >
+                #{tag}
+              </button>
+            );
+          })}
         </div>
       ) : null}
 
@@ -108,8 +141,10 @@ export function MdDocList({ docs }: { docs: MdDocListRow[] }) {
                   {d.title}
                 </span>
                 {d.tags.length > 0 ? (
-                  <span className="truncate text-caption text-stone">
-                    {d.tags.map((t) => `#${t}`).join(" ")}
+                  <span className="flex flex-wrap gap-xxs">
+                    {d.tags.map((t) => (
+                      <MdTagChip key={t} name={t} color={tagColor(t)} />
+                    ))}
                   </span>
                 ) : null}
               </div>
@@ -122,9 +157,15 @@ export function MdDocList({ docs }: { docs: MdDocListRow[] }) {
         </div>
       )}
 
-      <Modal open={newOpen} onClose={() => setNewOpen(false)} title="New doc" size="wide">
+      <Modal
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        title="New doc"
+        size="wide"
+      >
         {newOpen ? (
           <MdDocForm
+            tags={tags}
             onDone={(id) => {
               setNewOpen(false);
               if (id) router.push(`/md-docs/${id}`);
@@ -133,6 +174,14 @@ export function MdDocList({ docs }: { docs: MdDocListRow[] }) {
             onCancel={() => setNewOpen(false)}
           />
         ) : null}
+      </Modal>
+
+      <Modal
+        open={manageOpen}
+        onClose={() => setManageOpen(false)}
+        title="Quản lý tag"
+      >
+        {manageOpen ? <MdTagManager tags={tags} /> : null}
       </Modal>
     </div>
   );

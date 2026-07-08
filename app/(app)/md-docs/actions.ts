@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { mdDocs } from "@/db/schema";
+import { mdDocs, mdTags } from "@/db/schema";
 import { requireUser } from "@/lib/auth/dal";
 
 export type MdDocInput = {
@@ -52,6 +52,55 @@ export async function updateMdDoc(
 export async function deleteMdDoc(id: number): Promise<MdDocResult> {
   await requireUser();
   await db.delete(mdDocs).where(eq(mdDocs.id, id));
+  revalidatePath("/md-docs");
+  return { ok: true };
+}
+
+// ---------- Tag config (name + color) ----------
+
+export async function createMdTag(
+  name: string,
+  color: string,
+): Promise<MdDocResult> {
+  await requireUser();
+  const n = name.trim().toLowerCase();
+  if (!n) return { ok: false, error: "Tên tag là bắt buộc." };
+  const clash = await db
+    .select({ id: mdTags.id })
+    .from(mdTags)
+    .where(eq(mdTags.name, n))
+    .limit(1);
+  if (clash[0]) return { ok: false, error: "Tag đã tồn tại." };
+  await db.insert(mdTags).values({ name: n, color: color.trim() || "#888888" });
+  revalidatePath("/md-docs");
+  return { ok: true };
+}
+
+export async function updateMdTag(
+  id: number,
+  name: string,
+  color: string,
+): Promise<MdDocResult> {
+  await requireUser();
+  const n = name.trim().toLowerCase();
+  if (!n) return { ok: false, error: "Tên tag là bắt buộc." };
+  const clash = await db
+    .select({ id: mdTags.id })
+    .from(mdTags)
+    .where(and(eq(mdTags.name, n), ne(mdTags.id, id)))
+    .limit(1);
+  if (clash[0]) return { ok: false, error: "Tag đã tồn tại." };
+  await db
+    .update(mdTags)
+    .set({ name: n, color: color.trim() || "#888888" })
+    .where(eq(mdTags.id, id));
+  revalidatePath("/md-docs");
+  return { ok: true };
+}
+
+export async function deleteMdTag(id: number): Promise<MdDocResult> {
+  await requireUser();
+  await db.delete(mdTags).where(eq(mdTags.id, id));
   revalidatePath("/md-docs");
   return { ok: true };
 }

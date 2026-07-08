@@ -2,6 +2,7 @@
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 
 type Props = {
   markdown: string;
@@ -10,15 +11,23 @@ type Props = {
   // this `markdown` string; `checks` overrides the `[x]` written in the source.
   checks?: Record<number, boolean>;
   onToggleCheck?: (line: number, checked: boolean) => void;
+  // Turn single newlines into <br> (remark-breaks). Useful when pasting plain
+  // text that isn't strict markdown so line breaks are preserved.
+  breaks?: boolean;
 };
 
 // Styling lives in `.markdown-preview` (app/globals.css) so inline vs. block
 // code and GFM task lists render correctly without per-element component maps.
-export function MarkdownPreview({ markdown, checks, onToggleCheck }: Props) {
+export function MarkdownPreview({
+  markdown,
+  checks,
+  onToggleCheck,
+  breaks,
+}: Props) {
   return (
     <div className="markdown-preview">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={breaks ? [remarkGfm, remarkBreaks] : [remarkGfm]}
         components={{
           // Mọi link mở sang tab mới.
           a({ node, ...props }) {

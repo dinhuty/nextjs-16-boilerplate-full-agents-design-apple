@@ -8,6 +8,7 @@ import {
   timestamp,
   boolean,
   unique,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -186,9 +187,34 @@ export const mdDocs = pgTable("md_docs", {
   }),
 });
 
+// Configurable colored tags for md docs (name + hex color). Master data.
+export const mdTags = pgTable("md_tags", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  color: text("color").notNull().default("#888888"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+// Many-to-many link between personal tasks and shared md docs.
+export const taskDocs = pgTable(
+  "task_docs",
+  {
+    taskId: integer("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    docId: integer("doc_id")
+      .notNull()
+      .references(() => mdDocs.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.taskId, t.docId] })],
+);
+
 export type User = typeof users.$inferSelect;
 export type ReleaseTemplate = typeof releaseTemplates.$inferSelect;
 export type ReleaseProcedure = typeof releaseProcedures.$inferSelect;
 export type SqlSnippet = typeof sqlSnippets.$inferSelect;
 export type MdDoc = typeof mdDocs.$inferSelect;
+export type MdTag = typeof mdTags.$inferSelect;
 export type Task = typeof tasks.$inferSelect;

@@ -6,8 +6,10 @@ import { deleteMdDoc } from "@/app/(app)/md-docs/actions";
 import { Button } from "@/components/atoms/Button";
 import { CopyButton } from "@/components/atoms/CopyButton";
 import { Modal } from "@/components/atoms/Modal";
+import Link from "next/link";
 import { MarkdownPreview } from "@/components/organisms/release-procedure/MarkdownPreview";
 import { MdDocForm } from "@/components/organisms/md-docs/MdDocForm";
+import { MdTagChip, type MdTagDef } from "@/components/organisms/md-docs/MdTags";
 
 export type MdDocViewData = {
   id: number;
@@ -18,7 +20,16 @@ export type MdDocViewData = {
   updatedByName: string | null;
 };
 
-export function MdDocView({ doc }: { doc: MdDocViewData }) {
+export function MdDocView({
+  doc,
+  tags,
+  linkedTasks,
+}: {
+  doc: MdDocViewData;
+  tags: MdTagDef[];
+  linkedTasks: { id: number; title: string }[];
+}) {
+  const colorOf = new Map(tags.map((t) => [t.name, t.color]));
   const [showRaw, setShowRaw] = useState(false);
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -35,14 +46,18 @@ export function MdDocView({ doc }: { doc: MdDocViewData }) {
   return (
     <div className="flex flex-col gap-md">
       <div className="flex flex-wrap items-start justify-between gap-sm">
-        <div className="flex flex-col gap-xxs">
+        <div className="flex flex-col gap-xs">
           <h1 className="text-heading-3 text-ink">{doc.title}</h1>
-          <span className="text-caption text-stone">
-            {doc.tags.map((t) => `#${t}`).join(" ")}
-            {doc.updatedByName
-              ? `${doc.tags.length ? " · " : ""}Sửa bởi ${doc.updatedByName} · ${doc.updatedAt.toLocaleDateString()}`
-              : ""}
-          </span>
+          <div className="flex flex-wrap items-center gap-xs">
+            {doc.tags.map((t) => (
+              <MdTagChip key={t} name={t} color={colorOf.get(t) ?? "#888888"} />
+            ))}
+            {doc.updatedByName ? (
+              <span className="text-caption text-stone">
+                Sửa bởi {doc.updatedByName} · {doc.updatedAt.toLocaleDateString()}
+              </span>
+            ) : null}
+          </div>
         </div>
         <div className="flex flex-wrap gap-xs">
           <Button
@@ -75,9 +90,28 @@ export function MdDocView({ doc }: { doc: MdDocViewData }) {
             {doc.body}
           </pre>
         ) : (
-          <MarkdownPreview markdown={doc.body} />
+          <MarkdownPreview markdown={doc.body} breaks />
         )}
       </div>
+
+      {linkedTasks.length > 0 ? (
+        <div className="flex flex-col gap-xs rounded-lg border border-hairline bg-canvas p-md">
+          <span className="text-body-sm-medium text-slate">
+            Task liên kết ({linkedTasks.length})
+          </span>
+          <div className="flex flex-wrap gap-xs">
+            {linkedTasks.map((t) => (
+              <Link
+                key={t.id}
+                href={`/tasks?task=${t.id}`}
+                className="rounded-md border border-hairline px-sm py-xxs font-mono text-body-sm text-slate transition-colors hover:border-primary hover:text-primary"
+              >
+                {t.title}
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <Modal
         open={editing}
@@ -87,6 +121,7 @@ export function MdDocView({ doc }: { doc: MdDocViewData }) {
       >
         {editing ? (
           <MdDocForm
+            tags={tags}
             initial={{
               id: doc.id,
               title: doc.title,

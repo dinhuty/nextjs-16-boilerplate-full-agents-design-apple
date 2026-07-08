@@ -54,7 +54,7 @@ export default async function ProcedurePage({
         ← Release Procedure
       </Link>
       <TaskLinkPopup
-        tasks={linkedTasks}
+        tasks={linkedTasks.map((t) => ({ ...t, docIds: [] }))}
         procTitle={new Map([[proc.id, proc.title]])}
       />
       <ProcedureView
