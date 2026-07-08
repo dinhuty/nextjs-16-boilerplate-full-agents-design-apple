@@ -2,12 +2,10 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
 import { Modal } from "@/components/atoms/Modal";
 import { Pagination } from "@/components/atoms/Pagination";
-import { MdDocForm } from "@/components/organisms/md-docs/MdDocForm";
 import {
   MdTagChip,
   MdTagManager,
@@ -33,9 +31,7 @@ export function MdDocList({
 }) {
   const [query, setQuery] = useState("");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
-  const [newOpen, setNewOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
-  const router = useRouter();
 
   const colorOf = useMemo(() => {
     const m = new Map<string, string>();
@@ -83,9 +79,9 @@ export function MdDocList({
           >
             Quản lý tag
           </Button>
-          <Button type="button" onClick={() => setNewOpen(true)}>
-            + New doc
-          </Button>
+          <Link href="/md-docs/new">
+            <Button type="button">+ New doc</Button>
+          </Link>
         </div>
       </div>
 
@@ -156,25 +152,6 @@ export function MdDocList({
           ))}
         </div>
       )}
-
-      <Modal
-        open={newOpen}
-        onClose={() => setNewOpen(false)}
-        title="New doc"
-        size="wide"
-      >
-        {newOpen ? (
-          <MdDocForm
-            tags={tags}
-            onDone={(id) => {
-              setNewOpen(false);
-              if (id) router.push(`/md-docs/${id}`);
-              else router.refresh();
-            }}
-            onCancel={() => setNewOpen(false)}
-          />
-        ) : null}
-      </Modal>
 
       <Modal
         open={manageOpen}

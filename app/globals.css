@@ -424,3 +424,69 @@ body {
 .dark .markdown-preview .hljs-deletion {
   color: #ffdcd7;
 }
+
+/* Blockquotes + GitHub-style callouts (remarkCallouts). */
+.markdown-preview blockquote {
+  border-left: 3px solid var(--color-hairline);
+  padding: 2px 12px;
+  margin: 0.5rem 0;
+  color: var(--color-steel);
+}
+.markdown-preview .callout {
+  border-radius: var(--radius-md);
+  background: var(--color-surface-soft);
+  padding: 8px 14px;
+  color: var(--color-slate);
+}
+.markdown-preview .callout::before {
+  display: block;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+.markdown-preview .callout-note {
+  border-left-color: #3772cf;
+}
+.markdown-preview .callout-note::before {
+  content: "Note";
+  color: #3772cf;
+}
+.markdown-preview .callout-tip {
+  border-left-color: #1ba673;
+}
+.markdown-preview .callout-tip::before {
+  content: "Tip";
+  color: #1ba673;
+}
+.markdown-preview .callout-important {
+  border-left-color: #7c3aed;
+}
+.markdown-preview .callout-important::before {
+  content: "Important";
+  color: #7c3aed;
+}
+.markdown-preview .callout-warning {
+  border-left-color: #c37d0d;
+}
+.markdown-preview .callout-warning::before {
+  content: "Warning";
+  color: #c37d0d;
+}
+.markdown-preview .callout-caution {
+  border-left-color: #d45656;
+}
+.markdown-preview .callout-caution::before {
+  content: "Caution";
+  color: #d45656;
+}
+
+/* Footnotes (GFM). */
+.markdown-preview .footnotes {
+  border-top: 1px solid var(--color-hairline);
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  font-size: 13px;
+  color: var(--color-steel);
+}

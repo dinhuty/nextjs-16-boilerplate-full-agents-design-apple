@@ -12,7 +12,9 @@ export type MdDocInput = {
   tags: string[];
 };
 
-export type MdDocResult = { ok: true; id?: number } | { ok: false; error: string };
+export type MdDocResult =
+  | { ok: true; id?: number }
+  | { ok: false; error: string; conflict?: boolean };
 
 function normalize(i: MdDocInput): MdDocInput {
   return {
@@ -37,16 +39,35 @@ export async function createMdDoc(input: MdDocInput): Promise<MdDocResult> {
 export async function updateMdDoc(
   id: number,
   input: MdDocInput,
+  opts?: { baseUpdatedAt?: number; force?: boolean },
 ): Promise<MdDocResult> {
   const user = await requireUser();
   const d = normalize(input);
   if (!d.title) return { ok: false, error: "Tiêu đề là bắt buộc." };
+
+  // Conflict guard: someone else may have saved since this editor loaded.
+  if (opts?.baseUpdatedAt && !opts.force) {
+    const [cur] = await db
+      .select({ updatedAt: mdDocs.updatedAt })
+      .from(mdDocs)
+      .where(eq(mdDocs.id, id))
+      .limit(1);
+    if (cur && cur.updatedAt.getTime() > opts.baseUpdatedAt) {
+      return {
+        ok: false,
+        conflict: true,
+        error: "Người khác vừa sửa doc này. Tải lại để xem, hoặc bấm Ghi đè.",
+      };
+    }
+  }
+
   await db
     .update(mdDocs)
     .set({ ...d, updatedBy: user.id, updatedAt: new Date() })
     .where(eq(mdDocs.id, id));
   revalidatePath("/md-docs");
-  return { ok: true };
+  revalidatePath(`/md-docs/${id}`);
+  return { ok: true, id };
 }
 
 export async function deleteMdDoc(id: number): Promise<MdDocResult> {
