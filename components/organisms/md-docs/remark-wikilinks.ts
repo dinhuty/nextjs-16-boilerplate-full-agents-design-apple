@@ -48,8 +48,9 @@ function transform(children: MdNode[], resolve: (t: string) => number | null): M
   return out;
 }
 
+// Returns a unified attacher (a plugin), so it can be passed to remarkPlugins.
 export function remarkWikilinks(resolve: (title: string) => number | null) {
-  return (tree: MdNode) => {
+  return () => (tree: MdNode) => {
     if (tree.children) tree.children = transform(tree.children, resolve);
   };
 }

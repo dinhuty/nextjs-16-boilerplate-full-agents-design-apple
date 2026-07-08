@@ -12,6 +12,7 @@ import {
   MdTagManager,
   type MdTagDef,
 } from "@/components/organisms/md-docs/MdTags";
+import { TagIcon, PlusIcon } from "@/components/atoms/icons";
 import { usePaged } from "@/lib/use-paged";
 
 export type MdDocListRow = {
@@ -132,11 +133,17 @@ export function MdDocList({
             variant="secondary"
             type="button"
             onClick={() => setManageOpen(true)}
+            title="Quản lý tag"
+            aria-label="Quản lý tag"
+            className="w-11 px-0"
           >
-            Quản lý tag
+            <TagIcon className="h-[18px] w-[18px]" />
           </Button>
           <Link href="/md-docs/new">
-            <Button type="button">+ New doc</Button>
+            <Button type="button" className="gap-xs whitespace-nowrap" title="Tạo doc mới">
+              <PlusIcon className="h-[18px] w-[18px]" />
+              New
+            </Button>
           </Link>
         </div>
       </div>

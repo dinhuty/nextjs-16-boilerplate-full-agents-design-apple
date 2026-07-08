@@ -154,6 +154,25 @@ export function MoonIcon({ className, ...props }: IconProps) {
   );
 }
 
+/** Tag — nhãn có lỗ đục. */
+export function TagIcon({ className, ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} {...base} {...props}>
+      <path d="M11.5 3.5H5A1.5 1.5 0 0 0 3.5 5v6.5a1.5 1.5 0 0 0 .44 1.06l7.5 7.5a1.5 1.5 0 0 0 2.12 0l6.5-6.5a1.5 1.5 0 0 0 0-2.12l-7.5-7.5A1.5 1.5 0 0 0 11.5 3.5Z" />
+      <circle cx="7.75" cy="7.75" r="1.1" />
+    </svg>
+  );
+}
+
+/** Dấu cộng — tạo mới. */
+export function PlusIcon({ className, ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} {...base} {...props}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
 /** Env Diff — hai mũi tên lên/xuống so sánh. */
 export function DiffIcon({ className, ...props }: IconProps) {
   return (
