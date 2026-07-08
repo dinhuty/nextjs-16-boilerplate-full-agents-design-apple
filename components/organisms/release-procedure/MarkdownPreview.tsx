@@ -38,6 +38,26 @@ function codeLang(pre: HastNode | undefined): string {
   return lang ? lang.slice("language-".length) : "";
 }
 
+// Hover "Copy" button pinned top-right of a block (code / diagram source).
+// The parent must be `group relative` for the hover + positioning to work.
+function CopyOverlayButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        navigator.clipboard.writeText(text).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        });
+      }}
+      className="absolute right-xs top-xs rounded-md border border-hairline bg-canvas px-xs py-xxs text-caption text-steel opacity-0 transition-opacity hover:text-primary group-hover:opacity-100"
+    >
+      {copied ? "Copied" : "Copy"}
+    </button>
+  );
+}
+
 // Render a ```mermaid block as a diagram (mermaid loaded on demand).
 function Mermaid({ chart }: { chart: string }) {
   const [svg, setSvg] = useState("");
@@ -75,12 +95,18 @@ function Mermaid({ chart }: { chart: string }) {
       alive = false;
     };
   }, [chart, id, dark]);
-  if (failed) return <pre>{chart}</pre>;
+  if (failed)
+    return (
+      <div className="group relative">
+        <pre>{chart}</pre>
+        <CopyOverlayButton text={chart} />
+      </div>
+    );
   return (
-    <div
-      className="my-sm overflow-auto"
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
+    <div className="group relative my-sm">
+      <div className="overflow-auto" dangerouslySetInnerHTML={{ __html: svg }} />
+      <CopyOverlayButton text={chart} />
+    </div>
   );
 }
 
@@ -109,22 +135,10 @@ function AnchorHash({ id }: { id?: string }) {
 
 // A fenced code block with a hover "Copy" button.
 function CodeBlock({ text, children }: { text: string; children: ReactNode }) {
-  const [copied, setCopied] = useState(false);
   return (
     <div className="group relative">
       <pre>{children}</pre>
-      <button
-        type="button"
-        onClick={() => {
-          navigator.clipboard.writeText(text).then(() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
-          });
-        }}
-        className="absolute right-xs top-xs rounded-md border border-hairline bg-canvas px-xs py-xxs text-caption text-steel opacity-0 transition-opacity hover:text-primary group-hover:opacity-100"
-      >
-        {copied ? "Copied" : "Copy"}
-      </button>
+      <CopyOverlayButton text={text} />
     </div>
   );
 }
