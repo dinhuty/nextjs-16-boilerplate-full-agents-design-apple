@@ -22,12 +22,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // NB: the font/`antialiased` classes go on <body>, NOT <html>. The no-flash
+  // script and ThemeToggle add `.dark` to <html> imperatively; if React also
+  // owned <html>'s className it would re-commit the static value on every
+  // client navigation and strip `.dark` (dark → flash → light). With no
+  // className prop on <html>, React never touches its class, so `.dark` sticks.
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${inter.variable} ${geistMono.variable} antialiased`}
-    >
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Apply the saved (or system) theme before paint to avoid a flash. */}
         <script
@@ -36,7 +37,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>{children}</body>
+      <body className={`${inter.variable} ${geistMono.variable} antialiased`}>
+        {children}
+      </body>
     </html>
   );
 }
