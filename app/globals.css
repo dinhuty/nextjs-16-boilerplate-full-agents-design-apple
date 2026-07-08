@@ -303,3 +303,32 @@ body {
   color: inherit;
   font-size: 13px;
 }
+/* Tables (GFM) */
+.markdown-preview table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 14px;
+}
+.markdown-preview th,
+.markdown-preview td {
+  border: 1px solid var(--color-hairline);
+  padding: 6px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+.markdown-preview th {
+  background: var(--color-surface-soft);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.markdown-preview tr:nth-child(even) td {
+  background: var(--color-surface-soft);
+}
+/* Keep anchored headings clear of the sticky header when jumping via the TOC. */
+.markdown-preview :is(h1, h2, h3) {
+  scroll-margin-top: 5rem;
+}

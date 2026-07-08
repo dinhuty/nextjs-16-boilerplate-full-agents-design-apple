@@ -1,8 +1,40 @@
 "use client";
 
+import { useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
+import rehypeSlug from "rehype-slug";
+
+// Recursively collect text from a hast node (for the code-block copy button).
+type HastNode = { value?: string; children?: HastNode[] };
+function nodeText(n: HastNode | undefined): string {
+  if (!n) return "";
+  if (typeof n.value === "string") return n.value;
+  return (n.children ?? []).map(nodeText).join("");
+}
+
+// A fenced code block with a hover "Copy" button.
+function CodeBlock({ text, children }: { text: string; children: ReactNode }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="group relative">
+      <pre>{children}</pre>
+      <button
+        type="button"
+        onClick={() => {
+          navigator.clipboard.writeText(text).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+          });
+        }}
+        className="absolute right-xs top-xs rounded-md border border-hairline bg-canvas px-xs py-xxs text-caption text-steel opacity-0 transition-opacity hover:text-primary group-hover:opacity-100"
+      >
+        {copied ? "Copied" : "Copy"}
+      </button>
+    </div>
+  );
+}
 
 type Props = {
   markdown: string;
@@ -28,11 +60,15 @@ export function MarkdownPreview({
     <div className="markdown-preview">
       <ReactMarkdown
         remarkPlugins={breaks ? [remarkGfm, remarkBreaks] : [remarkGfm]}
+        rehypePlugins={[rehypeSlug]}
         components={{
           // Mọi link mở sang tab mới.
           a({ node, ...props }) {
             void node;
             return <a {...props} target="_blank" rel="noopener noreferrer" />;
+          },
+          pre({ node, children }) {
+            return <CodeBlock text={nodeText(node)}>{children}</CodeBlock>;
           },
           input({ node, ...props }) {
             if (props.type === "checkbox" && onToggleCheck) {

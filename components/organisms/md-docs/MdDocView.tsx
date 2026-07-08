@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { deleteMdDoc } from "@/app/(app)/md-docs/actions";
+import { extractHeadings } from "@/components/organisms/md-docs/toc";
 import { Button } from "@/components/atoms/Button";
 import { CopyButton } from "@/components/atoms/CopyButton";
 import { Modal } from "@/components/atoms/Modal";
@@ -30,6 +31,7 @@ export function MdDocView({
   linkedTasks: { id: number; title: string }[];
 }) {
   const colorOf = new Map(tags.map((t) => [t.name, t.color]));
+  const headings = useMemo(() => extractHeadings(doc.body), [doc.body]);
   const [showRaw, setShowRaw] = useState(false);
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -84,14 +86,33 @@ export function MdDocView({
         </div>
       </div>
 
-      <div className="rounded-lg border border-hairline bg-canvas p-lg">
-        {showRaw ? (
-          <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-code-sm text-slate">
-            {doc.body}
-          </pre>
-        ) : (
-          <MarkdownPreview markdown={doc.body} breaks />
-        )}
+      <div className="flex flex-col gap-md lg:flex-row lg:items-start">
+        <div className="min-w-0 flex-1 rounded-lg border border-hairline bg-canvas p-lg">
+          {showRaw ? (
+            <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-code-sm text-slate">
+              {doc.body}
+            </pre>
+          ) : (
+            <MarkdownPreview markdown={doc.body} breaks />
+          )}
+        </div>
+        {!showRaw && headings.length >= 2 ? (
+          <nav className="w-full shrink-0 rounded-lg border border-hairline bg-canvas p-md lg:sticky lg:top-20 lg:w-60">
+            <span className="text-caption font-medium text-stone">Mục lục</span>
+            <div className="mt-xs flex max-h-[70vh] flex-col gap-xxs overflow-auto">
+              {headings.map((h, i) => (
+                <a
+                  key={i}
+                  href={`#${h.slug}`}
+                  className="truncate text-body-sm text-slate transition-colors hover:text-primary"
+                  style={{ paddingLeft: `${(h.level - 1) * 12}px` }}
+                >
+                  {h.text}
+                </a>
+              ))}
+            </div>
+          </nav>
+        ) : null}
       </div>
 
       {linkedTasks.length > 0 ? (
