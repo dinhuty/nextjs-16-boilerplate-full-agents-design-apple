@@ -158,8 +158,8 @@ export function MoonIcon({ className, ...props }: IconProps) {
 export function TagIcon({ className, ...props }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className={className} {...base} {...props}>
-      <path d="M11.5 3.5H5A1.5 1.5 0 0 0 3.5 5v6.5a1.5 1.5 0 0 0 .44 1.06l7.5 7.5a1.5 1.5 0 0 0 2.12 0l6.5-6.5a1.5 1.5 0 0 0 0-2.12l-7.5-7.5A1.5 1.5 0 0 0 11.5 3.5Z" />
-      <circle cx="7.75" cy="7.75" r="1.1" />
+      <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.414 2.414 0 0 0 3.414 0l6.586-6.586a2.414 2.414 0 0 0 0-3.414Z" />
+      <circle cx="7.5" cy="7.5" r="1.1" />
     </svg>
   );
 }
