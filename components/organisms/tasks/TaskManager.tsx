@@ -6,8 +6,10 @@ import {
   createTask,
   updateTask,
   deleteTask,
+  updateTaskChecklist,
   type TaskInput,
 } from "@/app/(app)/tasks/actions";
+import type { TaskChecklistItem } from "@/db/schema";
 import {
   TaskBody,
   TagChip,
@@ -15,6 +17,7 @@ import {
   prUrl,
   backlogUrlOf,
   defaultBacklogUrl,
+  checklistProgress,
   type Task,
 } from "@/components/organisms/tasks/TaskBody";
 import { Button } from "@/components/atoms/Button";
@@ -27,7 +30,12 @@ import { Modal } from "@/components/atoms/Modal";
 import { FormField } from "@/components/molecules/FormField";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { Pagination } from "@/components/atoms/Pagination";
-import { BacklogIcon, ListIcon, GridIcon } from "@/components/atoms/icons";
+import {
+  BacklogIcon,
+  ListIcon,
+  GridIcon,
+  CheckIcon,
+} from "@/components/atoms/icons";
 import { KNOWN_REPOS } from "@/lib/release-procedure/constants";
 import { usePaged } from "@/lib/use-paged";
 
@@ -64,6 +72,12 @@ function taskSummary(t: Task, procTitle: Map<number, string>): string {
       lines.push(
         `- ${p.repo}${p.branch ? ` (${p.branch})` : ""}: ${prUrl(p.repo, p.pr)}`,
       );
+    }
+  }
+  if (t.checklist.length) {
+    lines.push("Checklist:");
+    for (const c of t.checklist) {
+      lines.push(`- [${c.done ? "x" : " "}] ${c.text}${c.tested ? " (đã test)" : ""}`);
     }
   }
   if (t.note.trim()) lines.push(`Note: ${t.note.trim()}`);
@@ -253,6 +267,12 @@ export function TaskManager({
                   </span>
                 ) : null}
               </div>
+              {t.checklist.length > 0 ? (
+                <span className="flex shrink-0 items-center gap-xxs text-caption text-stone">
+                  <CheckIcon className="h-3 w-3" />
+                  {checklistProgress(t.checklist).done}/{t.checklist.length}
+                </span>
+              ) : null}
               {t.tags.includes(RELEASE_TAG) ? (
                 <TagChip tag={RELEASE_TAG} />
               ) : null}
@@ -304,7 +324,18 @@ export function TaskManager({
       >
         {detail ? (
           <div className="flex flex-col gap-md">
-            <TaskBody task={detail} procTitle={procTitle} docTitle={docTitle} />
+            <TaskBody
+              task={detail}
+              procTitle={procTitle}
+              docTitle={docTitle}
+              showChecklist={false}
+            />
+            <TaskChecklistLive
+              key={detail.id}
+              taskId={detail.id}
+              initial={detail.checklist}
+              onSaved={() => router.refresh()}
+            />
             <div className="flex flex-wrap justify-end gap-xs border-t border-hairline pt-sm">
               <Button
                 variant="ghost"
@@ -380,6 +411,7 @@ const EMPTY: TaskInput = {
   basicDesignUrl: "",
   prs: [],
   links: [],
+  checklist: [],
   note: "",
   tags: [],
   docIds: [],
@@ -414,6 +446,7 @@ function TaskForm({
           basicDesignUrl: initial.basicDesignUrl,
           prs: initial.prs,
           links: initial.links,
+          checklist: initial.checklist,
           note: initial.note,
           tags: initial.tags,
           docIds: initial.docIds,
@@ -644,6 +677,92 @@ function TaskForm({
       </div>
 
       <div className="flex flex-col gap-xs">
+        <div className="flex items-center justify-between">
+          <span className="text-body-sm-medium text-slate">Checklist</span>
+          <Button
+            variant="secondary"
+            type="button"
+            onClick={() =>
+              set("checklist", [
+                ...form.checklist,
+                { text: "", done: false, tested: false },
+              ])
+            }
+          >
+            + Việc
+          </Button>
+        </div>
+        {form.checklist.map((c, i) => (
+          <div key={i} className="flex items-center gap-xs">
+            <Input
+              value={c.text}
+              onChange={(e) =>
+                set(
+                  "checklist",
+                  form.checklist.map((x, j) =>
+                    j === i ? { ...x, text: e.target.value } : x,
+                  ),
+                )
+              }
+              placeholder="Việc cần làm…"
+            />
+            <button
+              type="button"
+              title="Đã làm xong"
+              aria-pressed={c.done}
+              onClick={() =>
+                set(
+                  "checklist",
+                  form.checklist.map((x, j) =>
+                    j === i ? { ...x, done: !x.done } : x,
+                  ),
+                )
+              }
+              className={`h-11 shrink-0 rounded-md px-sm text-caption transition-colors ${
+                c.done
+                  ? "bg-primary text-on-primary"
+                  : "border border-hairline text-stone hover:text-steel"
+              }`}
+            >
+              Done
+            </button>
+            <button
+              type="button"
+              title="Đã test / verify"
+              aria-pressed={c.tested}
+              onClick={() =>
+                set(
+                  "checklist",
+                  form.checklist.map((x, j) =>
+                    j === i ? { ...x, tested: !x.tested } : x,
+                  ),
+                )
+              }
+              className={`h-11 shrink-0 rounded-md px-sm text-caption transition-colors ${
+                c.tested
+                  ? "bg-[#22a06b]/15 text-[#22a06b]"
+                  : "border border-hairline text-stone hover:text-steel"
+              }`}
+            >
+              Test
+            </button>
+            <Button
+              variant="ghost"
+              type="button"
+              onClick={() =>
+                set(
+                  "checklist",
+                  form.checklist.filter((_, j) => j !== i),
+                )
+              }
+            >
+              ✕
+            </Button>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-xs">
         <span className="text-body-sm-medium text-slate">Docs liên kết</span>
         <Select
           value=""
@@ -782,6 +901,79 @@ function TagInput({
           ))}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+// Interactive checklist for the detail view: tick done / tested inline; each
+// change persists optimistically so you can work through the list without
+// opening the edit form.
+function TaskChecklistLive({
+  taskId,
+  initial,
+  onSaved,
+}: {
+  taskId: number;
+  initial: TaskChecklistItem[];
+  onSaved: () => void;
+}) {
+  const [items, setItems] = useState<TaskChecklistItem[]>(initial);
+  const [, startTransition] = useTransition();
+
+  if (items.length === 0) return null;
+  const cp = checklistProgress(items);
+
+  function toggle(i: number, key: "done" | "tested") {
+    const next = items.map((c, j) => (j === i ? { ...c, [key]: !c[key] } : c));
+    setItems(next);
+    startTransition(async () => {
+      await updateTaskChecklist(taskId, next);
+      onSaved();
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-xs">
+      <span className="text-caption text-stone">
+        Checklist {cp.done}/{cp.total} xong · {cp.tested} đã test
+      </span>
+      {items.map((c, i) => (
+        <div key={i} className="flex items-center gap-sm">
+          <button
+            type="button"
+            onClick={() => toggle(i, "done")}
+            aria-pressed={c.done}
+            aria-label={c.done ? "Bỏ done" : "Đánh dấu done"}
+            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px] border transition-colors ${
+              c.done
+                ? "border-primary bg-primary text-on-primary"
+                : "border-hairline text-transparent hover:border-stone"
+            }`}
+          >
+            <CheckIcon className="h-3.5 w-3.5" />
+          </button>
+          <span
+            className={`flex-1 text-body-sm ${
+              c.done ? "text-stone line-through" : "text-slate"
+            }`}
+          >
+            {c.text}
+          </span>
+          <button
+            type="button"
+            onClick={() => toggle(i, "tested")}
+            aria-pressed={c.tested}
+            title="Đã test / verify"
+            className={`shrink-0 rounded-full px-sm py-xxs text-caption transition-colors ${
+              c.tested
+                ? "bg-[#22a06b]/15 text-[#22a06b]"
+                : "border border-hairline text-stone hover:text-steel"
+            }`}
+          >
+            đã test
+          </button>
+        </div>
+      ))}
     </div>
   );
 }

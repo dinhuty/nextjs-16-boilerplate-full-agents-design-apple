@@ -128,6 +128,10 @@ export type TaskPr = { repo: string; branch: string; pr: string };
 // A user-added custom link on a task (name + URL).
 export type TaskLink = { label: string; url: string };
 
+// A checklist entry: something to do, with independent done / tested flags
+// (implement → done, then verify → tested).
+export type TaskChecklistItem = { text: string; done: boolean; tested: boolean };
+
 // Personal task tracker — each row is private to its owner (`user_id`); the
 // tool always queries scoped to the current user.
 export const tasks = pgTable("tasks", {
@@ -154,6 +158,11 @@ export const tasks = pgTable("tasks", {
   links: jsonb("links")
     .notNull()
     .$type<TaskLink[]>()
+    .default(sql`'[]'::jsonb`),
+  // Checklist of work items with done / tested status.
+  checklist: jsonb("checklist")
+    .notNull()
+    .$type<TaskChecklistItem[]>()
     .default(sql`'[]'::jsonb`),
   note: text("note").notNull().default(""),
   // Free-form labels; the reserved "release" tag marks a released task.

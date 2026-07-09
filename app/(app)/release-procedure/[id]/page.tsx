@@ -38,6 +38,7 @@ export default async function ProcedurePage({
       basicDesignUrl: tasks.basicDesignUrl,
       prs: tasks.prs,
       links: tasks.links,
+      checklist: tasks.checklist,
       note: tasks.note,
       tags: tasks.tags,
     })

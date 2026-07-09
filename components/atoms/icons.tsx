@@ -154,6 +154,15 @@ export function MoonIcon({ className, ...props }: IconProps) {
   );
 }
 
+/** Dấu tick — dùng cho checkbox checklist. */
+export function CheckIcon({ className, ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} {...base} {...props}>
+      <path d="m5 12.5 4.5 4.5L19 7" />
+    </svg>
+  );
+}
+
 /** Tag — nhãn có lỗ đục. */
 export function TagIcon({ className, ...props }: IconProps) {
   return (

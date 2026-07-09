@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { tasks, taskDocs, type TaskPr, type TaskLink } from "@/db/schema";
+import {
+  tasks,
+  taskDocs,
+  type TaskPr,
+  type TaskLink,
+  type TaskChecklistItem,
+} from "@/db/schema";
 import { requireUser } from "@/lib/auth/dal";
 
 export type TaskInput = {
@@ -17,12 +23,20 @@ export type TaskInput = {
   basicDesignUrl: string;
   prs: TaskPr[];
   links: TaskLink[];
+  checklist: TaskChecklistItem[];
   note: string;
   tags: string[];
   docIds: number[];
 };
 
 export type TaskResult = { ok: true } | { ok: false; error: string };
+
+// Drop blank rows, trim text, coerce the flags to real booleans.
+function cleanChecklist(items: TaskChecklistItem[]): TaskChecklistItem[] {
+  return items
+    .map((c) => ({ text: c.text.trim(), done: !!c.done, tested: !!c.tested }))
+    .filter((c) => c.text);
+}
 
 function normalize(i: TaskInput): TaskInput {
   return {
@@ -44,6 +58,7 @@ function normalize(i: TaskInput): TaskInput {
     links: i.links
       .map((l) => ({ label: l.label.trim(), url: l.url.trim() }))
       .filter((l) => l.label || l.url),
+    checklist: cleanChecklist(i.checklist),
     note: i.note,
     // Normalize tags: lowercase + trim + dedupe so "release" is a stable marker.
     tags: [...new Set(i.tags.map((t) => t.trim().toLowerCase()).filter(Boolean))],
@@ -89,6 +104,23 @@ export async function updateTask(
     .returning({ id: tasks.id });
   if (!updated[0]) return { ok: false, error: "Không tìm thấy task." };
   await syncDocs(id, docIds);
+  revalidatePath("/tasks");
+  return { ok: true };
+}
+
+// Persist just the checklist (inline ticking from the detail view). Scoped by
+// userId so a user can only touch their own task.
+export async function updateTaskChecklist(
+  id: number,
+  checklist: TaskChecklistItem[],
+): Promise<TaskResult> {
+  const user = await requireUser();
+  const updated = await db
+    .update(tasks)
+    .set({ checklist: cleanChecklist(checklist), updatedAt: new Date() })
+    .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
+    .returning({ id: tasks.id });
+  if (!updated[0]) return { ok: false, error: "Không tìm thấy task." };
   revalidatePath("/tasks");
   return { ok: true };
 }

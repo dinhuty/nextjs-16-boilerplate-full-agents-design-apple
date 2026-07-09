@@ -1,5 +1,6 @@
 import Link from "next/link";
-import type { TaskPr, TaskLink } from "@/db/schema";
+import type { TaskPr, TaskLink, TaskChecklistItem } from "@/db/schema";
+import { CheckIcon } from "@/components/atoms/icons";
 
 export type Task = {
   id: number;
@@ -13,10 +14,20 @@ export type Task = {
   basicDesignUrl: string;
   prs: TaskPr[];
   links: TaskLink[];
+  checklist: TaskChecklistItem[];
   note: string;
   tags: string[];
   docIds: number[];
 };
+
+// Counts for a checklist's progress line.
+export function checklistProgress(items: TaskChecklistItem[]) {
+  return {
+    total: items.length,
+    done: items.filter((c) => c.done).length,
+    tested: items.filter((c) => c.tested).length,
+  };
+}
 
 // Reserved tag: marks a task as released (rendered as a distinct green badge).
 export const RELEASE_TAG = "release";
@@ -73,11 +84,16 @@ export function TaskBody({
   task: t,
   procTitle,
   docTitle,
+  showChecklist = true,
 }: {
   task: Task;
   procTitle: Map<number, string>;
   docTitle?: Map<number, string>;
+  // The detail modal renders an interactive checklist instead, so it turns this
+  // read-only copy off to avoid showing the list twice.
+  showChecklist?: boolean;
 }) {
+  const cp = checklistProgress(t.checklist);
   return (
     <>
       {t.tags.length > 0 ? (
@@ -92,6 +108,38 @@ export function TaskBody({
         <p className="whitespace-pre-wrap text-body-sm text-slate">
           {t.description}
         </p>
+      ) : null}
+
+      {showChecklist && cp.total > 0 ? (
+        <div className="flex flex-col gap-xxs">
+          <span className="text-caption text-stone">
+            Checklist {cp.done}/{cp.total} xong
+            {cp.tested > 0 ? ` · ${cp.tested} đã test` : ""}
+          </span>
+          <ul className="flex flex-col gap-xxs">
+            {t.checklist.map((c, i) => (
+              <li key={i} className="flex items-center gap-xs text-body-sm">
+                <span
+                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border ${
+                    c.done
+                      ? "border-primary bg-primary text-on-primary"
+                      : "border-hairline text-transparent"
+                  }`}
+                >
+                  <CheckIcon className="h-3 w-3" />
+                </span>
+                <span className={c.done ? "text-stone line-through" : "text-slate"}>
+                  {c.text}
+                </span>
+                {c.tested ? (
+                  <span className="rounded-full bg-[#22a06b]/12 px-xs py-[1px] text-caption text-[#22a06b]">
+                    đã test
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
 
       <div className="flex flex-wrap gap-md">
